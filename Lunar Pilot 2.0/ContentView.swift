@@ -5,17 +5,89 @@
 //  Created by Austin Guevara on 6/27/23.
 //
 
+import SpriteKit
 import SwiftUI
 
 struct ContentView: View {
+    
+    @State private var shouldShowSettings = false
+    
+    @State private var shouldResetLevel = false
+    @State private var gameIsPaused = false
+    @State private var fuelLevel: CGFloat = 100
+    @State private var crashCount = 0
+    
+    let screenWidth = UIScreen.main.bounds.width
+    let screenHeight = UIScreen.main.bounds.height
+    
+    var scene: SKScene {
+        let scene = GameScene($shouldResetLevel, gameIsPaused: $gameIsPaused, fuelLevel: $fuelLevel, crashCount: $crashCount)
+        scene.size = CGSize(width: screenWidth, height: screenHeight)
+        
+        scene.scaleMode = .fill
+        scene.backgroundColor = .black        
+        return scene
+    }
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+        ZStack {
+            SpriteView(scene: scene)
+                .frame(width: screenWidth, height: screenHeight, alignment: .center)
+                .edgesIgnoringSafeArea(.all)
+            VStack {
+                HStack {
+                    Label("\(Int(fuelLevel))", systemImage: "fuelpump")
+                    Spacer()
+                    Label("\(crashCount)", systemImage: "burst")
+                }
+                .foregroundColor(.white)
+                .padding()
+                .font(Font.custom("SpaceMono-Bold", size: 16))
+                Spacer()
+                HStack {
+                    Button {
+                        shouldResetLevel = true
+                        print("I reset the level from the button")
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundColor(.white)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    Spacer()
+                    Button {
+                        gameIsPaused = true
+                        shouldShowSettings = true
+                    } label: {
+                        Image(systemName: "gear")
+                            .foregroundColor(.white)
+                    }
+                    .sheet(isPresented: $shouldShowSettings) {
+                        SettingsView(gameIsPaused: $gameIsPaused, shouldShowSettings: $shouldShowSettings)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                }
+                .padding()
+            }
+            .padding()
+            .edgesIgnoringSafeArea(.all)
         }
-        .padding()
+        .statusBar(hidden: true)
+        .persistentSystemOverlays(.hidden)
+    }
+    
+    struct SettingsView: View {
+        @Binding var gameIsPaused: Bool
+        @Binding var shouldShowSettings: Bool
+
+        var body: some View {
+            Button("Press to dismiss") {
+                shouldShowSettings = false
+                gameIsPaused = false
+            }
+            .padding()
+        }
     }
 }
 
