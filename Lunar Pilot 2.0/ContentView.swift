@@ -25,7 +25,10 @@ struct ContentView: View {
         scene.size = CGSize(width: screenWidth, height: screenHeight)
         
         scene.scaleMode = .fill
-        scene.backgroundColor = .black        
+        scene.backgroundColor = .black
+        
+        scene.isPaused = gameIsPaused
+        
         return scene
     }
     
@@ -47,7 +50,6 @@ struct ContentView: View {
                 HStack {
                     Button {
                         shouldResetLevel = true
-                        print("I reset the level from the button")
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(.white)
@@ -63,6 +65,9 @@ struct ContentView: View {
                             .foregroundColor(.white)
                     }
                     .sheet(isPresented: $shouldShowSettings) {
+                        // For some reason, when this is called, it is also re-initializing the whole GameScene
+                        // This is a problem because it re-draws the level, resets the score, etc...
+                        // We only want it to pause the game
                         SettingsView(gameIsPaused: $gameIsPaused, shouldShowSettings: $shouldShowSettings)
                     }
                     .buttonStyle(.bordered)

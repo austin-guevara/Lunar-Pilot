@@ -16,52 +16,63 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     @Binding var fuelLevel: CGFloat
     @Binding var crashCount: Int
     
-    // Used to turn the class into a singleton
+    // TODO: toggle isPaused from parent view
+    // Initially was using this to turn the class into a singleton
     // This is useful if we need to make function calls directly on the class instance
     // However, this doesn’t seem to be working for changing the isPaused state
     // Also, use of singletons isn’t recommended (for a variety of reasons), and we’re already doing @Bindings...
+    
     // lazy var shared = GameScene($shouldResetLevel, gameIsPaused: $gameIsPaused, fuelLevel: $fuelLevel, crashCount: $crashCount)
     
-    let gravityForce = -0.2
-    let thrustForce = 2.0
-    let rotationForce = 5.0 / 1000000
-    let fuelCost = 0.25
+    // func togglePause(to state: Bool) {
+    // scene?.isPaused = state
+    // }
     
-    var isTouchingLeft = false
-    var isTouchingRight = false
-    var isTouchingBoth = false
+    // Next thing to try: add a @Binding initialSetup bool to ensure that
     
-    var shouldResetCraft = false
-    var didLand = false
-    var canyonCollide = false
+    private let gravityForce = -0.2
+    private let thrustForce = 2.0
+    private let rotationForce = 5.0 / 1000000
+    private let fuelCost = 0.05
     
-    var top: CGFloat!
-    var right: CGFloat!
+    enum isTouching {
+        case left, right, both, none
+    }
     
-    let CraftName = "craft"
-    let CraftCategory: UInt32 = 0x1 << 0        // 00000000000000000000000000000001
-    let LandingGearCategory: UInt32 = 0x1 << 1  // 00000000000000000000000000000010
-    let BorderCategory: UInt32 = 0x1 << 2       // 00000000000000000000000000000100
-    let PadCategory: UInt32 = 0x1 << 3          // 00000000000000000000000000001000
+    private var currentTouch = isTouching.none
     
-    var borderLeft: SKShapeNode!
-    var borderRight: SKShapeNode!
-    var pad: SKSpriteNode!
+    private var shouldResetCraft = false
+    private var didLand = false
+    private var canyonCollide = false
     
-    var craft: SKSpriteNode!
-    var landingGearLeft: SKSpriteNode!
-    var landingGearRight: SKSpriteNode!
-    var fixed: SKPhysicsJointFixed!
-    var spring: SKPhysicsJointSpring!
-    var slider: SKPhysicsJointSliding!
+    private var top: CGFloat!
+    private var right: CGFloat!
     
-    var thrustNode: SKEmitterNode!
-    var thrustApplied = false
+    private let CraftCategory: UInt32 = 0x1 << 0        // 00000000000000000000000000000001
+    private let LandingGearCategory: UInt32 = 0x1 << 1  // 00000000000000000000000000000010
+    private let BorderCategory: UInt32 = 0x1 << 2       // 00000000000000000000000000000100
+    private let PadCategory: UInt32 = 0x1 << 3          // 00000000000000000000000000001000
     
-    var levelLabel: SKLabelNode!
-    var levelCount: Int = 1
+    private var borderLeft: SKShapeNode!
+    private var borderRight: SKShapeNode!
+    private var pad: SKSpriteNode!
     
-    var touchesArray = [UITouch]()
+    private var craft: SKSpriteNode!
+    private var landingGearLeft: SKSpriteNode!
+    private var landingGearRight: SKSpriteNode!
+    private var fixedJoint: SKPhysicsJointFixed!
+    private var springJoint: SKPhysicsJointSpring!
+    private var sliderJoint: SKPhysicsJointSliding!
+    
+    private var thrustNode: SKEmitterNode!
+    private var rotateLeftNode: SKEmitterNode!
+    private var rotateRightNode: SKEmitterNode!
+    private var crashNode: SKEmitterNode!
+    
+    private var levelLabel: SKLabelNode!
+    private var levelCount: Int = 1
+    
+    private var touchesArray = [UITouch]()
     
     init(_ shouldResetLevel: Binding<Bool>, gameIsPaused: Binding<Bool>, fuelLevel: Binding<CGFloat>, crashCount: Binding<Int>) {
         _shouldResetLevel = shouldResetLevel
@@ -97,24 +108,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // create the craft and canyon
         createCraft()
         createCanyon()
-        
     }
-    
-//    func togglePause(to state: Bool) {
-//        scene?.isPaused = state
-//    }
     
     func createCraft() {
         
         // Create craft body
         craft = SKSpriteNode(color: UIColor.red, size: CGSize(width: 40, height: 30))
         craft.texture = SKTexture(imageNamed: "Craft-Body_Texture")
-        craft.physicsBody = SKPhysicsBody(texture: SKTexture(imageNamed: "craftCollision"), size: craft.size)
+        craft.physicsBody = SKPhysicsBody(texture: SKTexture(imageNamed: "Craft-Body_Collision"), size: CGSize(width: craft.size.width - 4, height: craft.size.height - 4))
         
-        craft.physicsBody!.affectedByGravity = true
         craft.physicsBody!.angularDamping = 1
-        craft.physicsBody!.friction = 0.75
-        craft.physicsBody!.isDynamic = true
         
         craft.physicsBody!.categoryBitMask = CraftCategory
         craft.physicsBody!.contactTestBitMask = BorderCategory
@@ -122,14 +125,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(craft)
         
         // Create landing gear left
-        landingGearLeft = SKSpriteNode(color: UIColor.white, size: CGSize(width: 10, height: 20))
+        landingGearLeft = SKSpriteNode(color: UIColor.white, size: CGSize(width: 10, height: 17))
         landingGearLeft.texture = SKTexture(imageNamed: "Landing-Left_Texture")
-        landingGearLeft.physicsBody = SKPhysicsBody(texture: SKTexture(imageNamed: "landingGearLeftCollision"), size: CGSize(width: 10, height: 15))
         
-        landingGearLeft.physicsBody!.affectedByGravity = true
-        landingGearLeft.physicsBody!.angularDamping = 1
+        let leftFootPath = CGMutablePath()
+        let leftEdge = -4.5
+        let rightEdge = -1.0
+        let topEdge = -5.5
+        let bottomEdge = -6.75
+        leftFootPath.addLines(between: [CGPoint(x: leftEdge, y: bottomEdge), CGPoint(x: rightEdge, y: bottomEdge), CGPoint(x: rightEdge, y: topEdge), CGPoint(x: leftEdge, y: topEdge)])
+        leftFootPath.closeSubpath()
+        landingGearLeft.physicsBody = SKPhysicsBody(polygonFrom: leftFootPath)
+        
         landingGearLeft.physicsBody!.friction = 1
-        landingGearLeft.physicsBody!.isDynamic = true
         
         landingGearLeft.physicsBody!.categoryBitMask = LandingGearCategory
         landingGearLeft.physicsBody!.contactTestBitMask = PadCategory
@@ -139,54 +147,69 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Create landing gear right
         landingGearRight = SKSpriteNode(color: UIColor.white, size: CGSize(width: 10, height: 20))
         landingGearRight.texture = SKTexture(imageNamed: "Landing-Right_Texture")
-        landingGearRight.physicsBody = SKPhysicsBody(texture: SKTexture(imageNamed: "landingGearRightCollision"), size: CGSize(width: 10, height: 15))
         
-        landingGearRight.physicsBody!.affectedByGravity = true
-        landingGearRight.physicsBody!.angularDamping = 1
-//        landingGearRight.physicsBody!.contactTestBitMask = 1
+        let rightFootPath = CGMutablePath()
+        rightFootPath.addLines(between: [CGPoint(x: -leftEdge, y: bottomEdge), CGPoint(x: -rightEdge, y: bottomEdge), CGPoint(x: -rightEdge, y: topEdge), CGPoint(x: -leftEdge, y: topEdge)])
+        rightFootPath.closeSubpath()
+        landingGearRight.physicsBody = SKPhysicsBody(polygonFrom: rightFootPath)
+        
         landingGearRight.physicsBody!.friction = 1
-        landingGearRight.physicsBody!.isDynamic = true
         
         landingGearRight.physicsBody!.categoryBitMask = LandingGearCategory
         landingGearRight.physicsBody!.contactTestBitMask = PadCategory
         landingGearRight.position = CGPoint(x: right/2 + 15, y: top-27)
         self.addChild(landingGearRight)
         
-        // Create fixed joint
-        fixed = SKPhysicsJointFixed.joint(withBodyA: landingGearLeft.physicsBody!, bodyB: landingGearRight.physicsBody!, anchor: CGPoint(x: landingGearLeft.position.x - landingGearRight.position.x, y: landingGearLeft.position.y))
-        self.physicsWorld.add(fixed)
+        // Create fixed joint between each landing gear
+        fixedJoint = SKPhysicsJointFixed.joint(withBodyA: landingGearLeft.physicsBody!, bodyB: landingGearRight.physicsBody!, anchor: CGPoint(x: landingGearLeft.position.x - landingGearRight.position.x, y: landingGearLeft.position.y))
+        self.physicsWorld.add(fixedJoint)
         
-        // Create sliding joint
-        slider = SKPhysicsJointSliding.joint(withBodyA: craft.physicsBody!, bodyB: landingGearLeft.physicsBody!, anchor: craft.position, axis: CGVector(dx: 0, dy: 5))
-        slider.upperDistanceLimit = 10
-        slider.lowerDistanceLimit = 0
-        slider.shouldEnableLimits = true
-        self.physicsWorld.add(slider)
+        // Create sliding joint between landing gear and craft body
+        sliderJoint = SKPhysicsJointSliding.joint(withBodyA: craft.physicsBody!, bodyB: landingGearLeft.physicsBody!, anchor: craft.position, axis: CGVector(dx: 0, dy: 5))
+        sliderJoint.upperDistanceLimit = 10
+        sliderJoint.lowerDistanceLimit = 0
+        sliderJoint.shouldEnableLimits = true
+        self.physicsWorld.add(sliderJoint)
         
-        // Create spring joint
-        spring = SKPhysicsJointSpring.joint(withBodyA: craft.physicsBody!, bodyB: landingGearLeft.physicsBody!, anchorA: craft.position, anchorB: craft.position)
-        spring.frequency = 20.0
-        spring.damping = 20.0
-        self.physicsWorld.add(spring)
+        // Create spring joint between landing gear and craft body
+        springJoint = SKPhysicsJointSpring.joint(withBodyA: craft.physicsBody!, bodyB: landingGearLeft.physicsBody!, anchorA: craft.position, anchorB: craft.position)
+        springJoint.frequency = 20.0
+        springJoint.damping = 5.0
+        self.physicsWorld.add(springJoint)
+        
+        // Create thrust particle emitter
+        thrustNode = SKEmitterNode(fileNamed: "ThrustParticle.sks")
+        thrustNode.position = CGPoint(x: 0, y: -(craft.size.height/2))
+        thrustNode.targetNode = self.scene
+        thrustNode.particleBirthRate = 0
+        craft.addChild(thrustNode)
+        
+        // Create left and right thrust particle emitter
+        rotateLeftNode = SKEmitterNode(fileNamed: "ThrustParticle.sks")
+        rotateRightNode = SKEmitterNode(fileNamed: "ThrustParticle.sks")
+        rotateLeftNode.position = CGPoint(x: -(craft.size.width/2), y: -(craft.size.height/2))
+        rotateRightNode.position = CGPoint(x: craft.size.width/2, y: -(craft.size.height/2))
+        
+        rotateLeftNode.targetNode = self.scene
+        rotateRightNode.targetNode = self.scene
+        
+        rotateLeftNode.particleBirthRate = 0
+        rotateRightNode.particleBirthRate = 0
+        rotateLeftNode.emissionAngle = 180
+        rotateRightNode.emissionAngle = 0
+        rotateLeftNode.particlePositionRange.dx = 1
+        rotateRightNode.particlePositionRange.dx = 1
+        rotateLeftNode.particleLifetimeRange = 0.15
+        rotateRightNode.particleLifetimeRange = 0.15
+        
+        craft.addChild(rotateLeftNode)
+        craft.addChild(rotateRightNode)
     }
     
     func removeCraft() {
         craft.removeFromParent()
         landingGearLeft.removeFromParent()
         landingGearRight.removeFromParent()
-    }
-    
-    func addThrust() {
-        if !thrustApplied {
-            // Create thrust particle emitter
-            thrustNode = SKEmitterNode(fileNamed: "ThrustParticle.sks")
-            thrustNode.position = CGPoint(x: 0, y: -(craft.size.height/2))
-            thrustNode.targetNode = self.scene
-            
-            // Attach to craft
-            craft.addChild(thrustNode)
-            thrustApplied = true
-        }
     }
     
     func createCanyon() {
@@ -227,7 +250,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         if pathY > 10 {thePath.append([pathX,10])}
         
-        
         // Create left & right edge of path
         
         let leftPath = CGMutablePath()
@@ -258,7 +280,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             leftPath.addLine(to: CGPoint(x: xL, y: pathY))
             rightPath.addLine(to: CGPoint(x: xR, y: pathY))
         }
-        
         
         // Add edges to game scene
         
@@ -291,7 +312,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         levelLabel.fontColor = SKColor.white
         levelLabel.text = "\(levelCount)"
         levelLabel.fontSize = 16
-        levelLabel.position = CGPoint(x: pathX, y: 10)
+        levelLabel.position = CGPoint(x: pad.position.x, y: (pad.position.y + 10))
         self.addChild(levelLabel)
     }
     
@@ -306,86 +327,58 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // reset craft
         removeCraft()
         shouldResetCraft = true
-        
-        print("time to reset the level")
     }
         
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
-        // Used to: Convert touches from Set > Array because Set is not indexed
         for touch in touches {
+            // Place touches in global array so that they persist beyond the initial touchesBegan() event
             self.touchesArray.insert(touch, at: 0)
         }
         
-        if self.touchesArray.count > 1 {
-            
-            let touch1 = self.touchesArray[0]
-            let touch1Location = touch1.location(in: self)
-            
-            let touch2 = self.touchesArray[1]
-            let touch2Location = touch2.location(in: self)
-            
-            let portion = self.frame.width/2
-            
-            // if one touch is on 1 half of the screen and the other is on the other
-            if ((touch1Location.x < portion) && (touch2Location.x > portion / 2) || (touch1Location.x > portion / 2) && (touch2Location.x < portion / 2)) {
-                
-                // will apply force in update
-                isTouchingBoth = true
-                
-                // thrust sounds added
-                //thrustStart.play()
-//                thrust.numberOfLoops = -1
-//                thrust.play()
-//                CGAudio().playSound("thrust")
-                
-            } else {
-                
-                // go by first touch
-                if touch1Location.x < self.frame.size.width / 2 {
-                    // rotate left
-                    isTouchingLeft = true
-                } else {
-                    // rotate right
-                    isTouchingRight = true
-                }
-                
-            }
-        } else {
-            
-            let touch:UITouch = touches.first!
-            let touchLocation = touch.location(in: self)
-            
-            if touchLocation.x < self.frame.size.width / 2 {
-                // rotate left
-                isTouchingLeft = true
-            } else {
-                // rotate right
-                isTouchingRight = true
-            }
-            
-        }
+        resolveTouchState()
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         
-        // clear out current touches from touchesArray
-        touchesArray = []
-        
-        // stops applying force & rotation in update
-        isTouchingBoth = false
-        isTouchingLeft = false
-        isTouchingRight = false
-        
-        // remove thrust particle emitter
-        if thrustNode != nil {
-            thrustNode.removeFromParent()
-            thrustApplied = false
+        // Remove the touch that ended from the global array
+        for touch in touches {
+            if let index = self.touchesArray.firstIndex(of: touch) {
+                self.touchesArray.remove(at: index)
+            }
         }
         
-        // thrust sounds stopped
-        // thrustStart.stop()
-        // thrust.stop()
+        resolveTouchState()
+    }
+    
+    func resolveTouchState() {
+        
+        var touchingLeft = false
+        var touchingRight = false
+        
+        if touchesArray.count > 0 {
+            
+            // For touches in the array, record whether there was at least 1 touch on left or right of screen
+            for touch in touchesArray {
+                if (touch.location(in: self).x < self.frame.width/2) {
+                    touchingLeft = true
+                } else {
+                    touchingRight = true
+                }
+            }
+            
+            // Set value of currentTouch based on whether touches exist on both sides
+            if touchingLeft && touchingRight {
+                currentTouch = isTouching.both
+            } else if touchingLeft && !touchingRight {
+                currentTouch = isTouching.left
+            } else {
+                currentTouch = isTouching.right
+            }
+        } else {
+            // If touch array is empty, set touching to none
+            currentTouch = isTouching.none
+        }
     }
 
     override func update(_ currentTime: TimeInterval) {
@@ -407,7 +400,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             crashCount += 1
             
-            removeCraft()
+            // Break the craft apart into pieces
+            // self.physicsWorld.remove(fixedJoint)
+            // self.physicsWorld.remove(sliderJoint)
+            // self.physicsWorld.remove(springJoint)
+            // Need to set a delay before placing explosion emitter and resetting craft
             
             // TODO: Animation/effect on canyon collision
             // exp.removeFromParent()
@@ -415,6 +412,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // self.addChild(exp)
             // expAnimated()
             // explosion.play()
+            
+            removeCraft()
             
             shouldResetCraft = true
             canyonCollide = false
@@ -428,7 +427,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         if fuelLevel > 0 {
-            if (isTouchingBoth) {
+            switch currentTouch {
+            case .both:
                 
                 // update fuel level
                 fuelLevel -= fuelCost
@@ -437,14 +437,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 craft.physicsBody!.applyForce(CGMath().createThrustVector(r: thrustForce, sprite:craft))
                 
                 // add thrust particle emitter
-                addThrust()
-            }
-            if isTouchingLeft {
+                thrustNode.particleBirthRate = 200
+                
+            case .left:
+                
+                // update fuel level
+                fuelLevel -= fuelCost/2
+                
                 // rotate left
                 craft.physicsBody!.applyAngularImpulse(rotationForce)
-            } else if isTouchingRight {
+                
+                // add rotate particle emitter
+                rotateLeftNode.particleBirthRate = 100
+                
+            case .right:
+                
+                // update fuel level
+                fuelLevel -= fuelCost/2
+                
                 // rotate right
                 craft.physicsBody!.applyAngularImpulse(-rotationForce)
+                
+                // add rotate particle emitter
+                rotateRightNode.particleBirthRate = 100
+            case .none:
+                
+                // turn off thrust
+                thrustNode.particleBirthRate = 0
+                rotateLeftNode.particleBirthRate = 0
+                rotateRightNode.particleBirthRate = 0
             }
         }
     }
