@@ -72,6 +72,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var levelLabel: SKLabelNode!
     private var levelCount: Int = 1
     
+    private var crashResetTimer: Int = 60
+    
     private var touchesArray = [UITouch]()
     
     init(_ shouldResetLevel: Binding<Bool>, gameIsPaused: Binding<Bool>, fuelLevel: Binding<CGFloat>, crashCount: Binding<Int>) {
@@ -104,6 +106,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // enable multitouch gestures
         view?.isMultipleTouchEnabled = true
+        
+        // set crash reset timer
+        setCrashResetTimer()
         
         // create the craft and canyon
         createCraft()
@@ -328,6 +333,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         removeCraft()
         shouldResetCraft = true
     }
+    
+    func setCrashResetTimer() {
+        crashResetTimer = (self.scene?.view?.preferredFramesPerSecond ?? 60) * 3
+    }
         
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
@@ -396,34 +405,37 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             shouldResetLevel = false
         }
         
-        if canyonCollide {
-            
-            crashCount += 1
-            
-            // Break the craft apart into pieces
-            // self.physicsWorld.remove(fixedJoint)
-            // self.physicsWorld.remove(sliderJoint)
-            // self.physicsWorld.remove(springJoint)
-            // Need to set a delay before placing explosion emitter and resetting craft
-            
-            // TODO: Animation/effect on canyon collision
-            // exp.removeFromParent()
-            // exp.position = craft.position
-            // self.addChild(exp)
-            // expAnimated()
-            // explosion.play()
-            
-            removeCraft()
-            
-            shouldResetCraft = true
-            canyonCollide = false
-        }
-        
         if shouldResetCraft {
             fuelLevel = 100
             
             createCraft()
             shouldResetCraft = false
+        }
+        
+        if canyonCollide {
+            
+            // Break the craft apart into pieces
+            self.physicsWorld.remove(fixedJoint)
+            self.physicsWorld.remove(sliderJoint)
+            self.physicsWorld.remove(springJoint)
+            // Need to set a delay before placing explosion emitter and resetting craft
+            
+            crashResetTimer -= 1
+            if crashResetTimer <= 0 {
+                crashNode = SKEmitterNode(fileNamed: "BurstParticle.sks")
+                crashNode.position = craft.position
+                crashNode.targetNode = self.scene
+                self.addChild(crashNode)
+                
+                crashCount += 1
+                
+                setCrashResetTimer()
+                removeCraft()
+                
+                shouldResetCraft = true
+                canyonCollide = false
+                
+            }
         }
         
         if fuelLevel > 0 {
@@ -460,6 +472,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 
                 // add rotate particle emitter
                 rotateRightNode.particleBirthRate = 100
+                
             case .none:
                 
                 // turn off thrust
