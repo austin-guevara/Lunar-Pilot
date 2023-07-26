@@ -45,8 +45,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var didLand = false
     private var canyonCollide = false
     
-    private var top: CGFloat!
-    private var right: CGFloat!
+    private var screenHeight: CGFloat!
+    private var screenWidth: CGFloat!
     
     private let CraftCategory: UInt32 = 0x1 << 0        // 00000000000000000000000000000001
     private let LandingGearCategory: UInt32 = 0x1 << 1  // 00000000000000000000000000000010
@@ -68,6 +68,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var rotateLeftNode: SKEmitterNode!
     private var rotateRightNode: SKEmitterNode!
     private var crashNode: SKEmitterNode!
+    
+    private var backgroundTexture: SKSpriteNode!
     
     private var levelLabel: SKLabelNode!
     private var levelCount: Int = 1
@@ -95,8 +97,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didMove(to: SKView) {
         super.didMove(to: view!)
         
-        top = self.frame.size.height;
-        right = self.frame.size.width;
+        screenHeight = self.frame.size.height;
+        screenWidth = self.frame.size.width;
         
         // gamescene is the physicsWorld delegate
         physicsWorld.contactDelegate = self
@@ -111,8 +113,56 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setCrashResetTimer()
         
         // create the craft and canyon
-        createCraft()
+        createBackground()
         createCanyon()
+        createCraft()
+    }
+    
+    func createBackground() {
+        // Procedurally place large, medium, and small stars as individual sprites
+        backgroundTexture = SKSpriteNode(color: UIColor.black, size: self.size)
+        backgroundTexture.zPosition = -1
+        
+        let numCols = 2
+        let numRows = 4
+        
+        // Create boxes based on width and height
+        // X
+        // 0 -> width/3 | width/3 -> width*2/3 | width*2/3 -> width
+        // 0/3 -> 1/3   | 1/3 -> 2/3           | 2/3 -> 3/3
+        
+        // Define rows iteration
+        for y in 1...numRows {
+            // Define column iteration
+            for x in 1...numCols {
+                let currentMinX = CGFloat(Int(screenWidth) * (x-1)/numCols)
+                let currentMaxX = CGFloat(Int(screenWidth) * x/numCols)
+                
+                let currentMinY = CGFloat(Int(screenHeight) * (y-1)/numRows)
+                let currentMaxY = CGFloat(Int(screenHeight) * y/numRows)
+                
+                // 1 large star per grid box
+                let starLarge = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Large"), size: CGSize(width: 20, height: 20))
+                starLarge.position = CGPoint(x: CGMath().CGRandomBetweenNumbers(from: currentMinX, to: currentMaxX), y: CGMath().CGRandomBetweenNumbers(from: currentMinY, to: currentMaxY))
+                backgroundTexture.addChild(starLarge)
+                
+                // 2 medium stars per grid box
+                for _ in 1...2 {
+                    let starMedium = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Medium"), size: CGSize(width: 10, height: 10))
+                    starMedium.position = CGPoint(x: CGMath().CGRandomBetweenNumbers(from: currentMinX, to: currentMaxX), y: CGMath().CGRandomBetweenNumbers(from: currentMinY, to: currentMaxY))
+                    backgroundTexture.addChild(starMedium)
+                }
+                
+                // 3 small stars per grid box
+                for _ in 1...3 {
+                    let starSmall = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Small"), size: CGSize(width: 5, height: 5))
+                    starSmall.position = CGPoint(x: CGMath().CGRandomBetweenNumbers(from: currentMinX, to: currentMaxX), y: CGMath().CGRandomBetweenNumbers(from: currentMinY, to: currentMaxY))
+                    backgroundTexture.addChild(starSmall)
+                }
+            }
+        }
+        
+        self.addChild(backgroundTexture)
     }
     
     func createCraft() {
@@ -126,7 +176,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         craft.physicsBody!.categoryBitMask = CraftCategory
         craft.physicsBody!.contactTestBitMask = BorderCategory
-        craft.position = CGPoint(x: right/2, y: top-20)
+        craft.position = CGPoint(x: screenWidth/2, y: screenHeight-20)
         self.addChild(craft)
         
         // Create landing gear left
@@ -146,23 +196,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         landingGearLeft.physicsBody!.categoryBitMask = LandingGearCategory
         landingGearLeft.physicsBody!.contactTestBitMask = PadCategory
-        landingGearLeft.position = CGPoint(x: right/2 - 15, y: top-27)
+        landingGearLeft.position = CGPoint(x: screenWidth/2 - 15, y: screenHeight-27)
         self.addChild(landingGearLeft)
         
         // Create landing gear right
-        landingGearRight = SKSpriteNode(color: UIColor.white, size: CGSize(width: 10, height: 20))
-        landingGearRight.texture = SKTexture(imageNamed: "Landing-Right_Texture")
-        
-        let rightFootPath = CGMutablePath()
-        rightFootPath.addLines(between: [CGPoint(x: -leftEdge, y: bottomEdge), CGPoint(x: -rightEdge, y: bottomEdge), CGPoint(x: -rightEdge, y: topEdge), CGPoint(x: -leftEdge, y: topEdge)])
-        rightFootPath.closeSubpath()
-        landingGearRight.physicsBody = SKPhysicsBody(polygonFrom: rightFootPath)
-        
-        landingGearRight.physicsBody!.friction = 1
-        
-        landingGearRight.physicsBody!.categoryBitMask = LandingGearCategory
-        landingGearRight.physicsBody!.contactTestBitMask = PadCategory
-        landingGearRight.position = CGPoint(x: right/2 + 15, y: top-27)
+        landingGearRight = landingGearLeft.copy() as? SKSpriteNode
+        landingGearRight.xScale = -1.0
+        landingGearRight.position = CGPoint(x: screenWidth/2 + 15, y: screenHeight-27)
         self.addChild(landingGearRight)
         
         // Create fixed joint between each landing gear
@@ -220,14 +260,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func createCanyon() {
         
         // Create center of path, stored as array
-        var thePath: [[CGFloat]] = []
+        var canyonRoutePath: [[CGFloat]] = []
         
-        var pathX: CGFloat = right/2
-        var pathY: CGFloat = top - 50
+        var pathX: CGFloat = screenWidth/2
+        var pathY: CGFloat = screenHeight - 50
         
         
         while pathY > 100 {
-            let varianceX = CGMath().CGRandomBetweenNumbers(from: 50, to: 100)
+            let varianceX = CGMath().CGRandomBetweenNumbers(from: 1, to: 75)
             let c = Int(CGMath().CGRandomBetweenNumbers(from: 1, to: 3))
             
             if c == 1 {
@@ -240,44 +280,44 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     //x = x + m
                 }
             } else {
-                if (pathX + varianceX < right) {
+                if (pathX + varianceX < screenWidth) {
                     pathX = pathX + varianceX
                 } else {
                     pathX = pathX - varianceX
                 }
             }
             
-            pathY = pathY - CGMath().CGRandomBetweenNumbers(from: 30, to: 100)
+            pathY = pathY - CGMath().CGRandomBetweenNumbers(from: 1, to: 100)
             
             //println("x:\(pathX),y:\(pathY)")
-            thePath.append([pathX,pathY])
+            canyonRoutePath.append([pathX,pathY])
         }
         
-        if pathY > 10 {thePath.append([pathX,10])}
+        if pathY > 10 {canyonRoutePath.append([pathX,10])}
         
         // Create left & right edge of path
         
         let leftPath = CGMutablePath()
         let rightPath = CGMutablePath()
         
-        leftPath.move(to: CGPoint(x: right/2 - 50, y: top))
-        leftPath.addLine(to: CGPoint(x: right/2 - 50, y: top - 50))
+        leftPath.move(to: CGPoint(x: screenWidth/2 - 50, y: screenHeight))
+        leftPath.addLine(to: CGPoint(x: screenWidth/2 - 50, y: screenHeight - 50))
         
-        rightPath.move(to: CGPoint(x: right/2 + 50, y: top))
-        rightPath.addLine(to: CGPoint(x: right/2 + 50, y: top - 50))
+        rightPath.move(to: CGPoint(x: screenWidth/2 + 50, y: screenHeight))
+        rightPath.addLine(to: CGPoint(x: screenWidth/2 + 50, y: screenHeight - 50))
         
-        for point in thePath {
+        for point in canyonRoutePath {
             
-            var xL = point[0] - 50 //- r
-            var xR = point[0] + 50 //+ r
+            var xL = point[0] - 100 //- r
+            var xR = point[0] + 100 //+ r
             
             if xL <= 0 {
                 xL = 0
                 xR = 100
             }
-            if xR >= right {
-                xL = right - 100
-                xR = right
+            if xR >= screenWidth {
+                xL = screenWidth - 100
+                xR = screenWidth
             }
             
             pathY = point[1]
@@ -286,13 +326,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             rightPath.addLine(to: CGPoint(x: xR, y: pathY))
         }
         
-        // Add edges to game scene
+        // Complete path around edge of the screen
+        leftPath.addLine(to: CGPoint(x: 0 - 5, y: 0 - 5))
+        leftPath.addLine(to: CGPoint(x: 0 - 5, y: screenHeight + 5))
+        rightPath.addLine(to: CGPoint(x: screenWidth + 5, y: 0 - 5))
+        rightPath.addLine(to: CGPoint(x: screenWidth + 5, y: screenHeight + 5))
         
+        // Add edges to game scene
         borderLeft = SKShapeNode(path: leftPath)
         borderLeft.physicsBody = SKPhysicsBody(edgeChainFrom: leftPath)
         borderLeft.physicsBody!.categoryBitMask = BorderCategory
         borderLeft.physicsBody!.friction = 0.5
         borderLeft.physicsBody!.isDynamic = false
+        borderLeft.fillColor = UIColor.black
         self.addChild(borderLeft)
         
         borderRight = SKShapeNode(path: rightPath)
@@ -300,11 +346,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         borderRight.physicsBody!.categoryBitMask = BorderCategory
         borderRight.physicsBody!.friction = 0.5
         borderRight.physicsBody!.isDynamic = false
+        borderRight.fillColor = UIColor.black
         self.addChild(borderRight)
         
-        // create landing pad & level label
-        pad = SKSpriteNode(color: UIColor.red, size: CGSize(width: 100, height: 5))
-        pad.position = CGPoint(x: pathX, y: 5)
+        // Create landing pad & level count label
+        let padWidth: CGFloat = 100
+        let padHeight: CGFloat = 5
+        var padX: CGFloat = padWidth/2
+        
+        // Make sure the pad doesn’t go off the edge of the screen
+        if pathX < padWidth/2 {
+            padX = padWidth/2
+        } else if pathX > screenWidth - padWidth/2 {
+            padX = screenWidth - padWidth/2
+        } else {
+            padX = pathX
+        }
+        
+        pad = SKSpriteNode(color: UIColor.red, size: CGSize(width: padWidth, height: padHeight))
+        pad.position = CGPoint(x: padX, y: padHeight)
         pad.texture = SKTexture(imageNamed: "landingPad")
         
         pad.physicsBody = SKPhysicsBody(texture: pad.texture!, size: pad.size)
@@ -322,12 +382,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func resetLevel() {
-        // make next level
+        
+        // remove current level
         borderLeft.removeFromParent()
         borderRight.removeFromParent()
+        backgroundTexture.removeFromParent()
         pad.removeFromParent()
         levelLabel.removeFromParent()
+        
+        // redraw level
         createCanyon()
+        createBackground()
         
         // reset craft
         removeCraft()
@@ -393,7 +458,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func update(_ currentTime: TimeInterval) {
         
         if didLand {
-            if abs(craft.physicsBody!.velocity.dx) <= 0.1 && abs(craft.physicsBody!.velocity.dy) <= 0.1 {
+            if abs(craft.physicsBody!.velocity.dx) <= 0.3 && abs(craft.physicsBody!.velocity.dy) <= 0.3 {
                 levelCount += 1
                 resetLevel()
                 didLand = false
@@ -482,6 +547,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
     }
+    
+//    override func didFinishUpdate() {
+//        centerCamera()
+//    }
+//
+//    func centerCamera() {
+//
+//    }
     
     func didBegin(_ contact: SKPhysicsContact) {
         
