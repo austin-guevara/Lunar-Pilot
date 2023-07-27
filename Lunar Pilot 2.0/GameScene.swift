@@ -109,6 +109,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // enable multitouch gestures
         view?.isMultipleTouchEnabled = true
         
+        // Create borders at screen edge
+        let borderBody = SKPhysicsBody(edgeLoopFrom: self.frame)
+        borderBody.friction = 0.5
+        self.physicsBody = borderBody
+        
         // set crash reset timer
         setCrashResetTimer()
         
