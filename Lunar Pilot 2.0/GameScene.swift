@@ -73,6 +73,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var backgroundTexture: SKSpriteNode!
     
+    private var levelSize: Int = 1
+    private var levelHeight: CGFloat!
     private var levelLabel: SKLabelNode!
     private var levelCount: Int = 1
     
@@ -118,8 +120,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setCrashResetTimer()
         
         // create the craft and canyon
-        createBackground()
         createCanyon()
+        createBackground()
         createCraft()
     }
     
@@ -130,11 +132,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func createBackground() {
         // Procedurally place large, medium, and small stars as individual sprites
-        backgroundTexture = SKSpriteNode(color: UIColor.black, size: self.size)
+        backgroundTexture = SKSpriteNode(color: UIColor.black, size: CGSizeMake(screenWidth, levelHeight))
+//        backgroundTexture.position.x = screenWidth/2
+//        backgroundTexture.position.y = screenHeight/2
         backgroundTexture.zPosition = -1
         
         let numCols = 2
-        let numRows = 4
+        let numRows = 4 * levelSize
         
         // Create boxes based on width and height
         // X
@@ -148,8 +152,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 let currentMinX = CGFloat(Int(screenWidth) * (x-1)/numCols)
                 let currentMaxX = CGFloat(Int(screenWidth) * x/numCols)
                 
-                let currentMinY = CGFloat(Int(screenHeight) * (y-1)/numRows)
-                let currentMaxY = CGFloat(Int(screenHeight) * y/numRows)
+                let currentMinY = CGFloat(Int(levelHeight) * (y-1)/numRows)
+                let currentMaxY = CGFloat(Int(levelHeight) * y/numRows)
                 
                 // 1 large star per grid box
                 let starLarge = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Large"), size: CGSize(width: 20, height: 20))
@@ -286,13 +290,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         var pathY: CGFloat = screenHeight - 250
         
         // Generate a level height as a multiplier of screen height
-        let levelHeight = CGMath().CGRandomBetweenNumbers(from: 1, to: 3) * screenHeight
+        levelSize = Int.random(in: 1...3)
+        levelHeight = CGFloat(levelSize) * screenHeight
         
         canyonRoutePath.append([pathX,pathY])
         
         // Create x,y coordinates, decrementing in the y after each coordinate,
         // until y is within Xpx of the bottom of the screen
-        while pathY > (-levelHeight) {
+        while pathY > (screenHeight-levelHeight) {
             // Randomize the x variance for the point
             let varianceX = CGMath().CGRandomBetweenNumbers(from: 1, to: 85)
             
@@ -322,11 +327,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Create initial left and right points
         leftPath.move(to: CGPoint(x: screenWidth/2, y: screenHeight - 50))
-        leftPath.addLine(to: CGPoint(x: screenWidth/4, y: screenHeight - 50))
-        leftPath.addLine(to: CGPoint(x: screenWidth/8, y: screenHeight - 200))
         rightPath.move(to: CGPoint(x: screenWidth/2, y: screenHeight - 50))
+        
+        leftPath.addLine(to: CGPoint(x: screenWidth/4, y: screenHeight - 50))
         rightPath.addLine(to: CGPoint(x: screenWidth - screenWidth/4, y: screenHeight - 50))
-        rightPath.addLine(to: CGPoint(x: screenWidth - screenWidth/8, y: screenHeight - 150))
+        
+        leftPath.addLine(to: CGPoint(x: screenWidth/8, y: screenHeight - 200))
+        rightPath.addLine(to: CGPoint(x: screenWidth - screenWidth/8, y: screenHeight - 200))
         
         for point in canyonRoutePath {
             
@@ -343,10 +350,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // Complete path around edge of the screen
+        leftPath.addLine(to: CGPoint(x: pathX - screenWidth/2, y: screenHeight-levelHeight-100))
+        rightPath.addLine(to: CGPoint(x: pathX + screenWidth/2, y: screenHeight-levelHeight-100))
+        
+        leftPath.addLine(to: CGPoint(x: pathX, y: screenHeight-levelHeight-100))
+        rightPath.addLine(to: CGPoint(x: pathX, y: screenHeight-levelHeight-100))
+        
+        leftPath.addLine(to: CGPoint(x: pathX, y: -levelHeight - screenHeight))
+        rightPath.addLine(to: CGPoint(x: pathX, y: -levelHeight - screenHeight))
+        
         leftPath.addLine(to: CGPoint(x: 0 - screenWidth, y: -levelHeight - screenHeight))
-        leftPath.addLine(to: CGPoint(x: 0 - screenWidth, y: screenHeight * 2))
         rightPath.addLine(to: CGPoint(x: screenWidth * 2, y: -levelHeight - screenHeight))
+        
+        leftPath.addLine(to: CGPoint(x: 0 - screenWidth, y: screenHeight * 2))
         rightPath.addLine(to: CGPoint(x: screenWidth * 2, y: screenHeight * 2))
+        
+        leftPath.addLine(to: CGPoint(x: screenWidth/2, y: screenHeight * 2))
+        rightPath.addLine(to: CGPoint(x: screenWidth/2, y: screenHeight * 2))
         
         // Add edges to game scene
         borderLeft = SKShapeNode(path: leftPath)
@@ -372,19 +392,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Create landing pad & level count label
         let padWidth: CGFloat = 100
         let padHeight: CGFloat = 5
-        var padX: CGFloat = padWidth/2
-        
-        // Make sure the pad doesn’t go off the edge of the screen
-        if pathX < padWidth/2 {
-            padX = padWidth/2
-        } else if pathX > screenWidth - padWidth/2 {
-            padX = screenWidth - padWidth/2
-        } else {
-            padX = pathX
-        }
         
         pad = SKSpriteNode(color: UIColor.red, size: CGSize(width: padWidth, height: padHeight))
-        pad.position = CGPoint(x: padX, y: -levelHeight)
+        pad.position = CGPoint(x: pathX, y: (screenHeight-levelHeight-100) + padHeight/2)
         pad.texture = SKTexture(imageNamed: "landingPad")
         
         pad.physicsBody = SKPhysicsBody(texture: pad.texture!, size: pad.size)
@@ -399,6 +409,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         levelLabel.fontSize = 16
         levelLabel.position = CGPoint(x: pad.position.x, y: (pad.position.y + 10))
         self.addChild(levelLabel)
+        
+        // Hacky, but create a rect to cover the connecting line underneath the pad
+        let edgeCover = SKShapeNode(rectOf: CGSize(width: 10, height: screenHeight))
+        edgeCover.fillColor = UIColor.black
+        edgeCover.lineWidth = 0
+        edgeCover.position = CGPoint(x: pad.position.x, y: pad.position.y - edgeCover.frame.height/2 - pad.size.height/2)
+        borderRight.addChild(edgeCover)
     }
     
     func resetLevel() {
@@ -570,15 +587,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func didFinishUpdate() {
         
-        // Maybe come back to this later;
-        // trying to move the camera more smoothly by using an animated SKAction
-        // instead of immediately updating the x,y coords
-        // if abs(craft.position.y - sceneCamera.position.y) > 10 {
-            // let move = SKAction.move(to: craft.position, duration: 0.1)
-            // move.timingMode = .easeInEaseOut
-            // camera?.run(move, withKey: "moving")
-        // }
-        
         // If craft is in bottom half of the screen, pan camera to stay with it
         if craft.position.y < screenHeight/2 {
             camera?.position.y = craft.position.y
@@ -586,11 +594,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             camera?.position.y = screenHeight/2
         }
         
-        // If craft is in left or right 25% of screen, pan camera to stay with it
-        if craft.position.x < screenWidth/3 {
-            camera?.position.x = craft.position.x + screenWidth/3
-        } else if craft.position.x > screenWidth - screenWidth/3 {
-            camera?.position.x = craft.position.x - screenWidth/3
+        // If craft is in left or right X% of screen, pan camera to stay with it
+        if craft.position.x < screenWidth/4 {
+            camera?.position.x = craft.position.x + screenWidth/4
+        } else if craft.position.x > screenWidth - screenWidth/4 {
+            camera?.position.x = craft.position.x - screenWidth/4
         } else {
             camera?.position.x = screenWidth/2
         }
