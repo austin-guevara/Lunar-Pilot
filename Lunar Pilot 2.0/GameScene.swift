@@ -304,9 +304,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             if c == 2 {
                 pathX = pathX - varianceX
-//                }
             } else {
                 pathX = pathX + varianceX
+            }
             
             // Create next point with y coordinate at a random interval
             pathY = pathY - CGMath().CGRandomBetweenNumbers(from: 20, to: 100)
