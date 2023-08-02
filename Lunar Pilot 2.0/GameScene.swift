@@ -283,10 +283,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // If we want to later, we could randomize this as well pretty easily,
         // along with the x position of the craft
         var pathX: CGFloat = screenWidth/2
-        var pathY: CGFloat = screenHeight - 150
+        var pathY: CGFloat = screenHeight - 250
         
         // Generate a level height as a multiplier of screen height
-        let levelHeight = CGMath().CGRandomBetweenNumbers(from: 1, to: 5) * screenHeight
+        let levelHeight = CGMath().CGRandomBetweenNumbers(from: 1, to: 3) * screenHeight
         
         canyonRoutePath.append([pathX,pathY])
         
@@ -303,21 +303,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 // x = x
             }
             if c == 2 {
-                // Go left, without going off the screen
-                if (pathX - varianceX > 0) {
-                    pathX = pathX - varianceX
-                } else {
-                    //x = x + m
-                    pathX = 0
-                }
+                pathX = pathX - varianceX
+//                }
             } else {
-                // Go right, without going off the screen
-                if (pathX + varianceX < screenWidth) {
-                    pathX = pathX + varianceX
-                } else {
-                    pathX = screenWidth
-                }
-            }
+                pathX = pathX + varianceX
             
             // Create next point with y coordinate at a random interval
             pathY = pathY - CGMath().CGRandomBetweenNumbers(from: 20, to: 100)
@@ -326,36 +315,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             canyonRoutePath.append([pathX,pathY])
         }
         
-        // Add a final coord below the bottom of the screen
-//        canyonRoutePath.append([pathX,levelHeight-20])
-        
         // Create left & right edge of path
         
         let leftPath = CGMutablePath()
         let rightPath = CGMutablePath()
         
-        leftPath.move(to: CGPoint(x: screenWidth/2 - 50, y: screenHeight))
-        leftPath.addLine(to: CGPoint(x: screenWidth/2 - 50, y: screenHeight - 50))
-        
-        rightPath.move(to: CGPoint(x: screenWidth/2 + 50, y: screenHeight))
-        rightPath.addLine(to: CGPoint(x: screenWidth/2 + 50, y: screenHeight - 50))
+        // Create initial left and right points
+        leftPath.move(to: CGPoint(x: screenWidth/2, y: screenHeight - 50))
+        leftPath.addLine(to: CGPoint(x: screenWidth/4, y: screenHeight - 50))
+        leftPath.addLine(to: CGPoint(x: screenWidth/8, y: screenHeight - 200))
+        rightPath.move(to: CGPoint(x: screenWidth/2, y: screenHeight - 50))
+        rightPath.addLine(to: CGPoint(x: screenWidth - screenWidth/4, y: screenHeight - 50))
+        rightPath.addLine(to: CGPoint(x: screenWidth - screenWidth/8, y: screenHeight - 150))
         
         for point in canyonRoutePath {
             
             let varianceL = CGMath().CGRandomBetweenNumbers(from: 75, to: 200)
             let varianceR = CGMath().CGRandomBetweenNumbers(from: 75, to: 200)
             
-            var xL = point[0] - varianceL //- r
-            var xR = point[0] + varianceR //+ r
-            
-            if xL <= 0 {
-                xL = 0
-                xR = varianceR
-            }
-            if xR >= screenWidth {
-                xL = screenWidth - varianceL
-                xR = screenWidth
-            }
+            let xL = point[0] - varianceL //- r
+            let xR = point[0] + varianceR //+ r
             
             pathY = point[1]
             
@@ -366,7 +345,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Complete path around edge of the screen
         leftPath.addLine(to: CGPoint(x: 0 - screenWidth, y: -levelHeight - screenHeight))
         leftPath.addLine(to: CGPoint(x: 0 - screenWidth, y: screenHeight * 2))
-        print(leftPath)
         rightPath.addLine(to: CGPoint(x: screenWidth * 2, y: -levelHeight - screenHeight))
         rightPath.addLine(to: CGPoint(x: screenWidth * 2, y: screenHeight * 2))
         
@@ -476,7 +454,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             // For touches in the array, record whether there was at least 1 touch on left or right of screen
             for touch in touchesArray {
-                if (touch.location(in: self).x < self.frame.width/2) {
+                if (touch.location(in: self.camera ?? self).x < self.frame.width/2) {
                     touchingLeft = true
                 } else {
                     touchingRight = true
@@ -498,12 +476,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     override func update(_ currentTime: TimeInterval) {
-        
-        if craft.position.y < screenHeight/2 {
-            camera?.position.y = craft.position.y
-        } else {
-            camera?.position.y = screenHeight/2
-        }
         
         if shouldResetLevel {
             resetLevel()
@@ -593,6 +565,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 rotateLeftNode.particleBirthRate = 0
                 rotateRightNode.particleBirthRate = 0
             }
+        }
+    }
+    
+    override func didFinishUpdate() {
+        
+        // Maybe come back to this later;
+        // trying to move the camera more smoothly by using an animated SKAction
+        // instead of immediately updating the x,y coords
+        // if abs(craft.position.y - sceneCamera.position.y) > 10 {
+            // let move = SKAction.move(to: craft.position, duration: 0.1)
+            // move.timingMode = .easeInEaseOut
+            // camera?.run(move, withKey: "moving")
+        // }
+        
+        // If craft is in bottom half of the screen, pan camera to stay with it
+        if craft.position.y < screenHeight/2 {
+            camera?.position.y = craft.position.y
+        } else {
+            camera?.position.y = screenHeight/2
+        }
+        
+        // If craft is in left or right 25% of screen, pan camera to stay with it
+        if craft.position.x < screenWidth/3 {
+            camera?.position.x = craft.position.x + screenWidth/3
+        } else if craft.position.x > screenWidth - screenWidth/3 {
+            camera?.position.x = craft.position.x - screenWidth/3
+        } else {
+            camera?.position.x = screenWidth/2
         }
     }
     

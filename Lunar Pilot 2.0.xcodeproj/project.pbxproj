@@ -121,8 +121,6 @@
 		13B4FBFB2A4B1A1F00D74602 /* Lunar Pilot 2.0 */ = {
 			isa = PBXGroup;
 			children = (
-				1317D4A52A718E8300122154 /* Sprite Assets */,
-				13F3F40A2A5CA9AE0012AE47 /* Lunar-Pilot-2-0-Info.plist */,
 				13FBECF02A4C7D2C00074D44 /* CGAudio.swift */,
 				13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_2_0App.swift */,
 				13B4FC262A4B1C2200D74602 /* GameScene.swift */,
@@ -130,7 +128,9 @@
 				13B4FBFE2A4B1A1F00D74602 /* ContentView.swift */,
 				13B4FC002A4B1A2100D74602 /* Assets.xcassets */,
 				13F3F4052A5CA8510012AE47 /* Fonts */,
+				1317D4A52A718E8300122154 /* Sprite Assets */,
 				13B4FC022A4B1A2100D74602 /* Preview Content */,
+				13F3F40A2A5CA9AE0012AE47 /* Lunar-Pilot-2-0-Info.plist */,
 			);
 			path = "Lunar Pilot 2.0";
 			sourceTree = "<group>";
@@ -474,7 +474,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Lunar Pilot";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -505,7 +505,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Lunar Pilot";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
