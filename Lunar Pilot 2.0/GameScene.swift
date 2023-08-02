@@ -48,6 +48,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var screenHeight: CGFloat!
     private var screenWidth: CGFloat!
     
+    private var sceneCamera = SKCameraNode()
+    
     private let CraftCategory: UInt32 = 0x1 << 0        // 00000000000000000000000000000001
     private let LandingGearCategory: UInt32 = 0x1 << 1  // 00000000000000000000000000000010
     private let BorderCategory: UInt32 = 0x1 << 2       // 00000000000000000000000000000100
@@ -100,6 +102,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         screenHeight = self.frame.size.height;
         screenWidth = self.frame.size.width;
         
+        camera = sceneCamera
+        resetCamera()
+        
         // gamescene is the physicsWorld delegate
         physicsWorld.contactDelegate = self
         
@@ -109,11 +114,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // enable multitouch gestures
         view?.isMultipleTouchEnabled = true
         
-        // Create borders at screen edge
-        let borderBody = SKPhysicsBody(edgeLoopFrom: self.frame)
-        borderBody.friction = 0.5
-        self.physicsBody = borderBody
-        
         // set crash reset timer
         setCrashResetTimer()
         
@@ -121,6 +121,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         createBackground()
         createCanyon()
         createCraft()
+    }
+    
+    func resetCamera() {
+        camera?.position.x = screenWidth/2
+        camera?.position.y = screenHeight/2
     }
     
     func createBackground() {
@@ -181,7 +186,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         craft.physicsBody!.categoryBitMask = CraftCategory
         craft.physicsBody!.contactTestBitMask = BorderCategory
-        craft.position = CGPoint(x: screenWidth/2, y: screenHeight-20)
+        craft.position = CGPoint(x: screenWidth/2, y: screenHeight-75)
         self.addChild(craft)
         
         // Create landing gear left
@@ -193,21 +198,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let rightEdge = -1.0
         let topEdge = -5.5
         let bottomEdge = -6.75
-        leftFootPath.addLines(between: [CGPoint(x: leftEdge, y: bottomEdge), CGPoint(x: rightEdge, y: bottomEdge), CGPoint(x: rightEdge, y: topEdge), CGPoint(x: leftEdge, y: topEdge)])
+        leftFootPath.addLines(between: [CGPoint(x: leftEdge, y: bottomEdge),
+                                        CGPoint(x: rightEdge, y: bottomEdge),
+                                        CGPoint(x: rightEdge, y: topEdge),
+                                        CGPoint(x: leftEdge, y: topEdge)])
+        
         leftFootPath.closeSubpath()
+        
         landingGearLeft.physicsBody = SKPhysicsBody(polygonFrom: leftFootPath)
         
         landingGearLeft.physicsBody!.friction = 1
         
         landingGearLeft.physicsBody!.categoryBitMask = LandingGearCategory
         landingGearLeft.physicsBody!.contactTestBitMask = PadCategory
-        landingGearLeft.position = CGPoint(x: screenWidth/2 - 15, y: screenHeight-27)
+        landingGearLeft.position = CGPoint(x: craft.position.x - 15, y: craft.position.y-8)
         self.addChild(landingGearLeft)
         
         // Create landing gear right
         landingGearRight = landingGearLeft.copy() as? SKSpriteNode
         landingGearRight.xScale = -1.0
-        landingGearRight.position = CGPoint(x: screenWidth/2 + 15, y: screenHeight-27)
+        landingGearRight.position = CGPoint(x: craft.position.x + 15, y: craft.position.y-8)
         self.addChild(landingGearRight)
         
         // Create fixed joint between each landing gear
@@ -260,6 +270,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         craft.removeFromParent()
         landingGearLeft.removeFromParent()
         landingGearRight.removeFromParent()
+        
+        touchesArray = []
     }
     
     func createCanyon() {
@@ -267,38 +279,55 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Create center of path, stored as array
         var canyonRoutePath: [[CGFloat]] = []
         
+        // Start at the top middle of the screen
+        // If we want to later, we could randomize this as well pretty easily,
+        // along with the x position of the craft
         var pathX: CGFloat = screenWidth/2
-        var pathY: CGFloat = screenHeight - 50
+        var pathY: CGFloat = screenHeight - 150
         
+        // Generate a level height as a multiplier of screen height
+        let levelHeight = CGMath().CGRandomBetweenNumbers(from: 1, to: 5) * screenHeight
         
-        while pathY > 100 {
-            let varianceX = CGMath().CGRandomBetweenNumbers(from: 1, to: 75)
+        canyonRoutePath.append([pathX,pathY])
+        
+        // Create x,y coordinates, decrementing in the y after each coordinate,
+        // until y is within Xpx of the bottom of the screen
+        while pathY > (-levelHeight) {
+            // Randomize the x variance for the point
+            let varianceX = CGMath().CGRandomBetweenNumbers(from: 1, to: 85)
+            
+            // Determine if path should go straight, left, or right
             let c = Int(CGMath().CGRandomBetweenNumbers(from: 1, to: 3))
             
             if c == 1 {
                 // x = x
             }
             if c == 2 {
+                // Go left, without going off the screen
                 if (pathX - varianceX > 0) {
                     pathX = pathX - varianceX
                 } else {
                     //x = x + m
+                    pathX = 0
                 }
             } else {
+                // Go right, without going off the screen
                 if (pathX + varianceX < screenWidth) {
                     pathX = pathX + varianceX
                 } else {
-                    pathX = pathX - varianceX
+                    pathX = screenWidth
                 }
             }
             
-            pathY = pathY - CGMath().CGRandomBetweenNumbers(from: 1, to: 100)
+            // Create next point with y coordinate at a random interval
+            pathY = pathY - CGMath().CGRandomBetweenNumbers(from: 20, to: 100)
             
             //println("x:\(pathX),y:\(pathY)")
             canyonRoutePath.append([pathX,pathY])
         }
         
-        if pathY > 10 {canyonRoutePath.append([pathX,10])}
+        // Add a final coord below the bottom of the screen
+//        canyonRoutePath.append([pathX,levelHeight-20])
         
         // Create left & right edge of path
         
@@ -313,15 +342,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         for point in canyonRoutePath {
             
-            var xL = point[0] - 100 //- r
-            var xR = point[0] + 100 //+ r
+            let varianceL = CGMath().CGRandomBetweenNumbers(from: 75, to: 200)
+            let varianceR = CGMath().CGRandomBetweenNumbers(from: 75, to: 200)
+            
+            var xL = point[0] - varianceL //- r
+            var xR = point[0] + varianceR //+ r
             
             if xL <= 0 {
                 xL = 0
-                xR = 100
+                xR = varianceR
             }
             if xR >= screenWidth {
-                xL = screenWidth - 100
+                xL = screenWidth - varianceL
                 xR = screenWidth
             }
             
@@ -332,10 +364,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // Complete path around edge of the screen
-        leftPath.addLine(to: CGPoint(x: 0 - 5, y: 0 - 5))
-        leftPath.addLine(to: CGPoint(x: 0 - 5, y: screenHeight + 5))
-        rightPath.addLine(to: CGPoint(x: screenWidth + 5, y: 0 - 5))
-        rightPath.addLine(to: CGPoint(x: screenWidth + 5, y: screenHeight + 5))
+        leftPath.addLine(to: CGPoint(x: 0 - screenWidth, y: -levelHeight - screenHeight))
+        leftPath.addLine(to: CGPoint(x: 0 - screenWidth, y: screenHeight * 2))
+        print(leftPath)
+        rightPath.addLine(to: CGPoint(x: screenWidth * 2, y: -levelHeight - screenHeight))
+        rightPath.addLine(to: CGPoint(x: screenWidth * 2, y: screenHeight * 2))
         
         // Add edges to game scene
         borderLeft = SKShapeNode(path: leftPath)
@@ -344,6 +377,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         borderLeft.physicsBody!.friction = 0.5
         borderLeft.physicsBody!.isDynamic = false
         borderLeft.fillColor = UIColor.black
+        borderLeft.strokeColor = UIColor.darkGray
+        borderLeft.lineWidth = 2
         self.addChild(borderLeft)
         
         borderRight = SKShapeNode(path: rightPath)
@@ -352,6 +387,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         borderRight.physicsBody!.friction = 0.5
         borderRight.physicsBody!.isDynamic = false
         borderRight.fillColor = UIColor.black
+        borderRight.strokeColor = UIColor.darkGray
+        borderRight.lineWidth = 2
         self.addChild(borderRight)
         
         // Create landing pad & level count label
@@ -369,7 +406,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         pad = SKSpriteNode(color: UIColor.red, size: CGSize(width: padWidth, height: padHeight))
-        pad.position = CGPoint(x: padX, y: padHeight)
+        pad.position = CGPoint(x: padX, y: -levelHeight)
         pad.texture = SKTexture(imageNamed: "landingPad")
         
         pad.physicsBody = SKPhysicsBody(texture: pad.texture!, size: pad.size)
@@ -462,12 +499,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     override func update(_ currentTime: TimeInterval) {
         
-        if didLand {
-            if abs(craft.physicsBody!.velocity.dx) <= 0.3 && abs(craft.physicsBody!.velocity.dy) <= 0.3 {
-                levelCount += 1
-                resetLevel()
-                didLand = false
-            }
+        if craft.position.y < screenHeight/2 {
+            camera?.position.y = craft.position.y
+        } else {
+            camera?.position.y = screenHeight/2
         }
         
         if shouldResetLevel {
@@ -505,6 +540,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 shouldResetCraft = true
                 canyonCollide = false
                 
+            }
+        }
+        
+        if didLand {
+            if abs(craft.physicsBody!.velocity.dx) <= 0.2 && abs(craft.physicsBody!.velocity.dy) <= 0.2 {
+                levelCount += 1
+                resetLevel()
+                didLand = false
             }
         }
         
@@ -553,14 +596,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-//    override func didFinishUpdate() {
-//        centerCamera()
-//    }
-//
-//    func centerCamera() {
-//
-//    }
-    
     func didBegin(_ contact: SKPhysicsContact) {
         
         // create local variables for two physics bodies
@@ -576,8 +611,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             secondBody = contact.bodyA
         }
         
-        canyonCollide = firstBody.categoryBitMask == CraftCategory && (secondBody.categoryBitMask == BorderCategory || secondBody.categoryBitMask == PadCategory)
-        
-        didLand = firstBody.categoryBitMask == LandingGearCategory && secondBody.categoryBitMask == PadCategory
+        if !canyonCollide {
+            canyonCollide = firstBody.categoryBitMask == CraftCategory && (secondBody.categoryBitMask == BorderCategory || secondBody.categoryBitMask == PadCategory)
+            didLand = firstBody.categoryBitMask == LandingGearCategory && secondBody.categoryBitMask == PadCategory
+        }
     }
 }
