@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1317D4A42A7186B700122154 /* Stars.sks in Resources */ = {isa = PBXBuildFile; fileRef = 1317D4A32A7186B700122154 /* Stars.sks */; };
+		137C5FB92A7D6A1800256422 /* SceneStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137C5FB82A7D6A1800256422 /* SceneStore.swift */; };
 		138A59502A5768F6007248FC /* ThrustParticle.sks in Resources */ = {isa = PBXBuildFile; fileRef = 138A594F2A5768F6007248FC /* ThrustParticle.sks */; };
 		13B4FBFD2A4B1A1F00D74602 /* Lunar_Pilot_2_0App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_2_0App.swift */; };
 		13B4FBFF2A4B1A1F00D74602 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B4FBFE2A4B1A1F00D74602 /* ContentView.swift */; };
@@ -43,6 +44,7 @@
 
 /* Begin PBXFileReference section */
 		1317D4A32A7186B700122154 /* Stars.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Stars.sks; sourceTree = "<group>"; };
+		137C5FB82A7D6A1800256422 /* SceneStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneStore.swift; sourceTree = "<group>"; };
 		138A594F2A5768F6007248FC /* ThrustParticle.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = ThrustParticle.sks; sourceTree = "<group>"; };
 		13B4FBF92A4B1A1F00D74602 /* Lunar Pilot 2.0.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lunar Pilot 2.0.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_2_0App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lunar_Pilot_2_0App.swift; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 		13B4FBF02A4B1A1F00D74602 = {
 			isa = PBXGroup;
 			children = (
+				137C5FB82A7D6A1800256422 /* SceneStore.swift */,
 				13B4FBFB2A4B1A1F00D74602 /* Lunar Pilot 2.0 */,
 				13B4FC0C2A4B1A2200D74602 /* Lunar Pilot 2.0Tests */,
 				13B4FC162A4B1A2200D74602 /* Lunar Pilot 2.0UITests */,
@@ -308,6 +311,7 @@
 				13B4FBFF2A4B1A1F00D74602 /* ContentView.swift in Sources */,
 				13FBECF12A4C7D2C00074D44 /* CGAudio.swift in Sources */,
 				13B4FBFD2A4B1A1F00D74602 /* Lunar_Pilot_2_0App.swift in Sources */,
+				137C5FB92A7D6A1800256422 /* SceneStore.swift in Sources */,
 				13FBECED2A4B894C00074D44 /* CGMath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

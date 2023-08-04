@@ -11,25 +11,21 @@ import SwiftUI
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
-    @Binding var shouldResetLevel: Bool
-    @Binding var gameIsPaused: Bool
-    @Binding var fuelLevel: CGFloat
-    @Binding var crashCount: Int
-    @Binding var levelCount: Int
+//    @Binding var shouldResetLevel: Bool
+//    @Binding var gameIsPaused: Bool
+//    @Binding var fuelLevel: CGFloat
+//    @Binding var crashCount: Int
+//    @Binding var levelCount: Int
     
-    // TODO: toggle isPaused from parent view
-    // Initially was using this to turn the class into a singleton
-    // This is useful if we need to make function calls directly on the class instance
-    // However, this doesn’t seem to be working for changing the isPaused state
-    // Also, use of singletons isn’t recommended (for a variety of reasons), and we’re already doing @Bindings...
-    
-    // lazy var shared = GameScene($shouldResetLevel, gameIsPaused: $gameIsPaused, fuelLevel: $fuelLevel, crashCount: $crashCount)
+    var shouldResetLevel: Bool = false
+    // var gameIsPaused: Bool
+    var fuelLevel: CGFloat = 100.0
+    var crashCount: Int = 0
+    var levelCount: Int = 1
     
     // func togglePause(to state: Bool) {
     // scene?.isPaused = state
     // }
-    
-    // Next thing to try: add a @Binding initialSetup bool to ensure that
     
     private let gravityForce = -0.2
     private let thrustForce = 2.0
@@ -82,23 +78,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var touchesArray = [UITouch]()
     
-    init(_ shouldResetLevel: Binding<Bool>, gameIsPaused: Binding<Bool>, fuelLevel: Binding<CGFloat>, crashCount: Binding<Int>, levelCount: Binding<Int>) {
-        _shouldResetLevel = shouldResetLevel
-        _gameIsPaused = gameIsPaused
-        _fuelLevel = fuelLevel
-        _crashCount = crashCount
-        _levelCount = levelCount
-        super.init(size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        _shouldResetLevel = .constant(false)
-        _gameIsPaused = .constant(false)
-        _fuelLevel = .constant(100)
-        _crashCount = .constant(0)
-        _levelCount = .constant(1)
-        super.init(coder: aDecoder)
-    }
+//    override init() {
+//        super.init(size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
+//    }
+//    
+//    required init?(coder aDecoder: NSCoder) {
+//       super.init(coder: aDecoder)
+//   }
     
     override func didMove(to: SKView) {
         super.didMove(to: view!)
