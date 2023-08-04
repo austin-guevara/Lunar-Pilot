@@ -15,6 +15,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     @Binding var gameIsPaused: Bool
     @Binding var fuelLevel: CGFloat
     @Binding var crashCount: Int
+    @Binding var levelCount: Int
     
     // TODO: toggle isPaused from parent view
     // Initially was using this to turn the class into a singleton
@@ -76,17 +77,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var levelSize: Int = 1
     private var levelHeight: CGFloat!
     private var levelLabel: SKLabelNode!
-    private var levelCount: Int = 1
     
     private var crashResetTimer: Int = 60
     
     private var touchesArray = [UITouch]()
     
-    init(_ shouldResetLevel: Binding<Bool>, gameIsPaused: Binding<Bool>, fuelLevel: Binding<CGFloat>, crashCount: Binding<Int>) {
+    init(_ shouldResetLevel: Binding<Bool>, gameIsPaused: Binding<Bool>, fuelLevel: Binding<CGFloat>, crashCount: Binding<Int>, levelCount: Binding<Int>) {
         _shouldResetLevel = shouldResetLevel
         _gameIsPaused = gameIsPaused
         _fuelLevel = fuelLevel
         _crashCount = crashCount
+        _levelCount = levelCount
         super.init(size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
     }
     
@@ -95,6 +96,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         _gameIsPaused = .constant(false)
         _fuelLevel = .constant(100)
         _crashCount = .constant(0)
+        _levelCount = .constant(1)
         super.init(coder: aDecoder)
     }
     
@@ -131,14 +133,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createBackground() {
+        
         // Procedurally place large, medium, and small stars as individual sprites
-        backgroundTexture = SKSpriteNode(color: UIColor.black, size: CGSizeMake(screenWidth, levelHeight))
-//        backgroundTexture.position.x = screenWidth/2
-//        backgroundTexture.position.y = screenHeight/2
+        backgroundTexture = SKSpriteNode(color: UIColor.black, size: CGSizeMake(screenWidth * 10, levelHeight + screenHeight))
+        backgroundTexture.position.x = screenWidth/2
+        backgroundTexture.position.y = screenHeight - levelHeight/2
         backgroundTexture.zPosition = -1
         
-        let numCols = 2
+        let backgroundMinX = backgroundTexture.position.x - backgroundTexture.size.width/2
+        let backgroundMinY = backgroundTexture.position.y - backgroundTexture.size.height/2
+        
+        let numCols = 2 * 10
         let numRows = 4 * levelSize
+        
+        print("levelSize: \(levelSize), numCols: \(numCols), numRows: \(numRows)")
         
         // Create boxes based on width and height
         // X
@@ -149,11 +157,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         for y in 1...numRows {
             // Define column iteration
             for x in 1...numCols {
-                let currentMinX = CGFloat(Int(screenWidth) * (x-1)/numCols)
-                let currentMaxX = CGFloat(Int(screenWidth) * x/numCols)
+                let currentMinX = backgroundMinX + backgroundTexture.size.width * CGFloat((x-1))/CGFloat(numCols)
+                let currentMaxX = backgroundMinX + backgroundTexture.size.width * CGFloat(x)/CGFloat(numCols)
                 
-                let currentMinY = CGFloat(Int(levelHeight) * (y-1)/numRows)
-                let currentMaxY = CGFloat(Int(levelHeight) * y/numRows)
+                let currentMinY = backgroundMinY + backgroundTexture.size.height * CGFloat((y-1))/CGFloat(numRows)
+                let currentMaxY = backgroundMinY + backgroundTexture.size.height * CGFloat(y)/CGFloat(numRows)
+                
+                // print("Add stars between \(currentMinX), \(currentMinY) and \(currentMaxX), \(currentMaxY)")
                 
                 // 1 large star per grid box
                 let starLarge = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Large"), size: CGSize(width: 20, height: 20))
@@ -325,7 +335,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let leftPath = CGMutablePath()
         let rightPath = CGMutablePath()
         
-        // Create initial left and right points
+        // Create canyon ceiling and initial left/right points
         leftPath.move(to: CGPoint(x: screenWidth/2, y: screenHeight - 50))
         rightPath.move(to: CGPoint(x: screenWidth/2, y: screenHeight - 50))
         
@@ -349,9 +359,30 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             rightPath.addLine(to: CGPoint(x: xR, y: pathY))
         }
         
-        // Complete path around edge of the screen
-        leftPath.addLine(to: CGPoint(x: pathX - screenWidth/2, y: screenHeight-levelHeight-100))
-        rightPath.addLine(to: CGPoint(x: pathX + screenWidth/2, y: screenHeight-levelHeight-100))
+        // Create landing pad & level count label
+        let padWidth: CGFloat = 100
+        let padHeight: CGFloat = 5
+        
+        pad = SKSpriteNode(color: UIColor.red, size: CGSize(width: padWidth, height: padHeight))
+        pad.position = CGPoint(x: pathX, y: (screenHeight-levelHeight-100) + padHeight/2)
+        pad.texture = SKTexture(imageNamed: "landingPad")
+        
+        pad.physicsBody = SKPhysicsBody(texture: pad.texture!, size: pad.size)
+        pad.physicsBody!.isDynamic = false
+        pad.physicsBody!.categoryBitMask = PadCategory
+        pad.physicsBody!.contactTestBitMask = CraftCategory
+        self.addChild(pad)
+        
+        levelLabel = SKLabelNode(fontNamed: "SpaceMono-Bold")
+        levelLabel.fontColor = SKColor.white
+        levelLabel.text = "\(levelCount)"
+        levelLabel.fontSize = 16
+        levelLabel.position = CGPoint(x: pad.position.x, y: (pad.position.y + 10))
+        self.addChild(levelLabel)
+        
+        // Create canyon floor, and loop around back to top of level to close the paths
+        leftPath.addLine(to: CGPoint(x: pathX - pad.size.width/2, y: screenHeight-levelHeight-100))
+        rightPath.addLine(to: CGPoint(x: pathX + pad.size.width/2, y: screenHeight-levelHeight-100))
         
         leftPath.addLine(to: CGPoint(x: pathX, y: screenHeight-levelHeight-100))
         rightPath.addLine(to: CGPoint(x: pathX, y: screenHeight-levelHeight-100))
@@ -359,11 +390,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         leftPath.addLine(to: CGPoint(x: pathX, y: -levelHeight - screenHeight))
         rightPath.addLine(to: CGPoint(x: pathX, y: -levelHeight - screenHeight))
         
-        leftPath.addLine(to: CGPoint(x: 0 - screenWidth, y: -levelHeight - screenHeight))
-        rightPath.addLine(to: CGPoint(x: screenWidth * 2, y: -levelHeight - screenHeight))
+        leftPath.addLine(to: CGPoint(x: 0 - screenWidth * 20, y: -levelHeight - screenHeight))
+        rightPath.addLine(to: CGPoint(x: screenWidth + screenWidth * 20, y: -levelHeight - screenHeight))
         
-        leftPath.addLine(to: CGPoint(x: 0 - screenWidth, y: screenHeight * 2))
-        rightPath.addLine(to: CGPoint(x: screenWidth * 2, y: screenHeight * 2))
+        leftPath.addLine(to: CGPoint(x: 0 - screenWidth * 20, y: screenHeight * 2))
+        rightPath.addLine(to: CGPoint(x: screenWidth + screenWidth * 20, y: screenHeight * 2))
         
         leftPath.addLine(to: CGPoint(x: screenWidth/2, y: screenHeight * 2))
         rightPath.addLine(to: CGPoint(x: screenWidth/2, y: screenHeight * 2))
@@ -388,27 +419,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         borderRight.strokeColor = UIColor.darkGray
         borderRight.lineWidth = 2
         self.addChild(borderRight)
-        
-        // Create landing pad & level count label
-        let padWidth: CGFloat = 100
-        let padHeight: CGFloat = 5
-        
-        pad = SKSpriteNode(color: UIColor.red, size: CGSize(width: padWidth, height: padHeight))
-        pad.position = CGPoint(x: pathX, y: (screenHeight-levelHeight-100) + padHeight/2)
-        pad.texture = SKTexture(imageNamed: "landingPad")
-        
-        pad.physicsBody = SKPhysicsBody(texture: pad.texture!, size: pad.size)
-        pad.physicsBody!.isDynamic = false
-        pad.physicsBody!.categoryBitMask = PadCategory
-        pad.physicsBody!.contactTestBitMask = CraftCategory
-        self.addChild(pad)
-        
-        levelLabel = SKLabelNode(fontNamed: "SpaceMono-Bold")
-        levelLabel.fontColor = SKColor.white
-        levelLabel.text = "\(levelCount)"
-        levelLabel.fontSize = 16
-        levelLabel.position = CGPoint(x: pad.position.x, y: (pad.position.y + 10))
-        self.addChild(levelLabel)
         
         // Hacky, but create a rect to cover the connecting line underneath the pad
         let edgeCover = SKShapeNode(rectOf: CGSize(width: 10, height: screenHeight))

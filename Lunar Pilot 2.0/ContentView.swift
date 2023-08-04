@@ -16,12 +16,13 @@ struct ContentView: View {
     @State private var gameIsPaused = false
     @State private var fuelLevel: CGFloat = 100
     @State private var crashCount = 0
+    @State private var levelCount = 1
     
     let screenWidth = UIScreen.main.bounds.width
     let screenHeight = UIScreen.main.bounds.height
     
     var scene: SKScene {
-        let scene = GameScene($shouldResetLevel, gameIsPaused: $gameIsPaused, fuelLevel: $fuelLevel, crashCount: $crashCount)
+        let scene = GameScene($shouldResetLevel, gameIsPaused: $gameIsPaused, fuelLevel: $fuelLevel, crashCount: $crashCount, levelCount: $levelCount)
         scene.size = CGSize(width: screenWidth, height: screenHeight)
         
         scene.scaleMode = .fill
