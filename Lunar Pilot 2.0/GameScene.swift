@@ -146,8 +146,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let numCols = 2 * 10
         let numRows = 4 * levelSize
         
-        print("levelSize: \(levelSize), numCols: \(numCols), numRows: \(numRows)")
-        
         // Create boxes based on width and height
         // X
         // 0 -> width/3 | width/3 -> width*2/3 | width*2/3 -> width
@@ -598,17 +596,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didFinishUpdate() {
         
         // If craft is in bottom half of the screen, pan camera to stay with it
-        if craft.position.y < screenHeight/2 {
+        if craft.position.y < pad.position.y + screenHeight/3 {
+            camera?.position.y = pad.position.y + screenHeight/3
+        } else if craft.position.y < screenHeight/2 {
             camera?.position.y = craft.position.y
         } else {
             camera?.position.y = screenHeight/2
         }
         
         // If craft is in left or right X% of screen, pan camera to stay with it
-        if craft.position.x < screenWidth/4 {
-            camera?.position.x = craft.position.x + screenWidth/4
-        } else if craft.position.x > screenWidth - screenWidth/4 {
-            camera?.position.x = craft.position.x - screenWidth/4
+        if craft.position.x < screenWidth/3 {
+            camera?.position.x = craft.position.x + (screenWidth/2 - screenWidth/3)
+        } else if craft.position.x > screenWidth - screenWidth/3 {
+            camera?.position.x = craft.position.x - (screenWidth/2 - screenWidth/3)
         } else {
             camera?.position.x = screenWidth/2
         }
