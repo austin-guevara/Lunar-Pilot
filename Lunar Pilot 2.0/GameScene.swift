@@ -9,7 +9,7 @@
 import SpriteKit
 import SwiftUI
 
-class GameScene: SKScene, SKPhysicsContactDelegate {
+class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     
 //    @Binding var shouldResetLevel: Bool
 //    @Binding var gameIsPaused: Bool
@@ -19,13 +19,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var shouldResetLevel: Bool = false
     // var gameIsPaused: Bool
-    var fuelLevel: CGFloat = 100.0
-    var crashCount: Int = 0
-    var levelCount: Int = 1
-    
-    // func togglePause(to state: Bool) {
-    // scene?.isPaused = state
-    // }
+    @Published var fuelLevel: CGFloat = 100.0
+    @Published var crashCount: Int = 0
+    @Published var levelCount: Int = 1
     
     private let gravityForce = -0.2
     private let thrustForce = 2.0

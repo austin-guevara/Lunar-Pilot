@@ -8,72 +8,35 @@
 import SpriteKit
 import SwiftUI
 
-class SceneStore: ObservableObject {
-//    @Published var shouldResetLevel = false
-//    @Published var gameIsPaused = false
-//    @Published var fuelLevel: CGFloat = 100
-//    @Published var crashCount = 0
-    
-    @Published var scene = GameScene()
-    @Published var levelCount = 5
-    
-    init() {
-        scene.size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-        scene.scaleMode = .fill
-        scene.backgroundColor = .black
-        // scene.isPaused = gameIsPaused
-        
-        scene.levelCount = levelCount
-    }
-}
+//class SceneStore: ObservableObject {
+//
+//    @Published var scene = GameScene()
+//    @Published var levelCount = 5
+//
+//    init() {
+//        scene.size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+//        scene.scaleMode = .fill
+//        scene.backgroundColor = .black
+//
+//        scene.levelCount = levelCount
+//    }
+//}
 
 struct ContentView: View {
     
     @State private var shouldShowSettings = false
     
-//    @State private var shouldResetLevel = false
-//    @State private var gameIsPaused = false
-//    @State private var fuelLevel: CGFloat = 100
-//    @State private var crashCount = 0
-//    @State private var levelCount = 1
-    
-    @StateObject private var sceneStore = SceneStore()
-    
-//    @StateObject private var scene: SKScene {
-//        let scene = GameScene()
-//
-//        scene.size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-//        scene.scaleMode = .fill
-//        scene.backgroundColor = .black
-////            scene.isPaused = gameIsPaused
-//
-//        return scene
-//    }
-    
-//    let screenWidth = UIScreen.main.bounds.width
-//    let screenHeight = UIScreen.main.bounds.height
-    
-//    var scene: SKScene {
-//        let scene = GameScene($shouldResetLevel, gameIsPaused: $gameIsPaused, fuelLevel: $fuelLevel, crashCount: $crashCount, levelCount: $levelCount)
-//        scene.size = CGSize(width: screenWidth, height: screenHeight)
-//
-//        scene.scaleMode = .fill
-//        scene.backgroundColor = .black
-//
-//        scene.isPaused = gameIsPaused
-//
-//        return scene
-//    }
+    @StateObject private var gameScene = GameScene()
     
     var body: some View {
         ZStack {
-            SpriteView(scene: sceneStore.scene)
+            SpriteView(scene: gameScene)
 //                .frame(width: screenWidth, height: screenHeight, alignment: .center)
                 .edgesIgnoringSafeArea(.all)
             VStack {
                 HStack {
                     //Label("\(Int(sceneStore.fuelLevel))", systemImage: "fuelpump")
-                    Label("\(Int(sceneStore.scene.fuelLevel))", systemImage: "fuelpump")
+                    Label("\(Int(gameScene.fuelLevel))", systemImage: "fuelpump")
                     Spacer()
                     // Label("\(sceneStore.crashCount)", systemImage: "burst")
                     Label("3", systemImage: "heart.fill")
@@ -95,7 +58,7 @@ struct ContentView: View {
                     Button {
                         // sceneStore.gameIsPaused = true
                         shouldShowSettings = true
-                        sceneStore.scene.isPaused = true
+                        gameScene.isPaused = true
                     } label: {
                         Image(systemName: "gear")
                             .foregroundColor(.white)
