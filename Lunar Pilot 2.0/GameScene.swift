@@ -422,7 +422,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let edgeCover = SKShapeNode(rectOf: CGSize(width: 10, height: screenHeight))
         edgeCover.fillColor = UIColor.black
         edgeCover.lineWidth = 0
-        edgeCover.position = CGPoint(x: pad.position.x, y: pad.position.y - edgeCover.frame.height/2 - pad.size.height/2)
+        edgeCover.position = CGPoint(x: pad.position.x, y: pad.position.y - edgeCover.frame.height/2 - pad.size.height/2 - 1)
         borderRight.addChild(edgeCover)
     }
     
