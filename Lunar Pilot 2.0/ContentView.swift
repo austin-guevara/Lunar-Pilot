@@ -20,11 +20,10 @@ struct ContentView: View {
                 .edgesIgnoringSafeArea(.all)
             VStack {
                 HStack {
-                    //Label("\(Int(sceneStore.fuelLevel))", systemImage: "fuelpump")
                     Label("\(Int(gameScene.fuelLevel))", systemImage: "fuelpump")
                     Spacer()
-                    // Label("\(sceneStore.crashCount)", systemImage: "burst")
-                    Label("3", systemImage: "heart.fill")
+                    // Label("\(gameScene.crashCount)", systemImage: "burst")
+                    Label("\(gameScene.levelCount)", systemImage: "heart")
                 }
                 .foregroundColor(.white)
                 .padding()
@@ -32,7 +31,7 @@ struct ContentView: View {
                 Spacer()
                 HStack {
                     Button {
-//                        sceneStore.shouldResetLevel = true
+                        gameScene.resetCraft()
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(.white)
@@ -41,7 +40,6 @@ struct ContentView: View {
                     .controlSize(.large)
                     Spacer()
                     Button {
-                        // sceneStore.gameIsPaused = true
                         shouldShowSettings = true
                         gameScene.isPaused = true
                     } label: {
@@ -49,7 +47,7 @@ struct ContentView: View {
                             .foregroundColor(.white)
                     }
                     .sheet(isPresented: $shouldShowSettings) {
-                        SettingsView(shouldShowSettings: $shouldShowSettings)
+                        SettingsView(shouldShowSettings: $shouldShowSettings, gameScene: gameScene)
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
@@ -70,10 +68,12 @@ struct ContentView: View {
     
     struct SettingsView: View {
         @Binding var shouldShowSettings: Bool
+        @ObservedObject var gameScene: GameScene
 
         var body: some View {
             Button("Press to dismiss") {
                 shouldShowSettings = false
+                gameScene.isPaused = false
             }
             .padding()
         }

@@ -11,14 +11,6 @@ import SwiftUI
 
 class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     
-//    @Binding var shouldResetLevel: Bool
-//    @Binding var gameIsPaused: Bool
-//    @Binding var fuelLevel: CGFloat
-//    @Binding var crashCount: Int
-//    @Binding var levelCount: Int
-    
-    var shouldResetLevel: Bool = false
-    // var gameIsPaused: Bool
     @Published var fuelLevel: CGFloat = 100.0
     @Published var crashCount: Int = 0
     @Published var levelCount: Int = 1
@@ -34,7 +26,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     
     private var currentTouch = isTouching.none
     
-    private var shouldResetCraft = false
+    var shouldResetCraft = false
     private var didLand = false
     private var canyonCollide = false
     
@@ -483,11 +475,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     }
 
     override func update(_ currentTime: TimeInterval) {
-        
-        if shouldResetLevel {
-            resetLevel()
-            shouldResetLevel = false
-        }
         
         if shouldResetCraft {
             fuelLevel = 100
