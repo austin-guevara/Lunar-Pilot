@@ -31,7 +31,7 @@ struct ContentView: View {
                 Spacer()
                 HStack {
                     Button {
-                        gameScene.resetCraft()
+                        gameScene.resetLevel()
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(.white)

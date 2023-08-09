@@ -163,6 +163,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     
     func createCraft() {
         
+        let entraceAnimation = SKAction.sequence([SKAction.fadeIn(withDuration: 0.3),
+                                                  SKAction.scale(to: 1, duration: 0.3)])
+        entraceAnimation.timingMode = .easeInEaseOut
+        
         // Create craft body
         craft = SKSpriteNode(color: UIColor.red, size: CGSize(width: 40, height: 30))
         craft.texture = SKTexture(imageNamed: "Craft-Body_Texture")
@@ -173,6 +177,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         craft.physicsBody!.categoryBitMask = CraftCategory
         craft.physicsBody!.contactTestBitMask = BorderCategory
         craft.position = CGPoint(x: screenWidth/2, y: screenHeight-75)
+        craft.alpha = 0
+        craft.xScale = 0.5
+        craft.yScale = 0.5
         self.addChild(craft)
         
         // Create landing gear left
@@ -197,14 +204,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         
         landingGearLeft.physicsBody!.categoryBitMask = LandingGearCategory
         landingGearLeft.physicsBody!.contactTestBitMask = PadCategory
-        landingGearLeft.position = CGPoint(x: craft.position.x - 15, y: craft.position.y-8)
-        self.addChild(landingGearLeft)
+        landingGearLeft.position = CGPoint(x: -30, y: -15)
+        craft.addChild(landingGearLeft)
         
         // Create landing gear right
         landingGearRight = landingGearLeft.copy() as? SKSpriteNode
         landingGearRight.xScale = -1.0
-        landingGearRight.position = CGPoint(x: craft.position.x + 15, y: craft.position.y-8)
-        self.addChild(landingGearRight)
+        landingGearRight.position = CGPoint(x: 30, y: -15)
+        craft.addChild(landingGearRight)
         
         // Create fixed joint between each landing gear
         fixedJoint = SKPhysicsJointFixed.joint(withBodyA: landingGearLeft.physicsBody!, bodyB: landingGearRight.physicsBody!, anchor: CGPoint(x: landingGearLeft.position.x - landingGearRight.position.x, y: landingGearLeft.position.y))
@@ -233,8 +240,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         // Create left and right thrust particle emitter
         rotateLeftNode = SKEmitterNode(fileNamed: "ThrustParticle.sks")
         rotateRightNode = SKEmitterNode(fileNamed: "ThrustParticle.sks")
-        rotateLeftNode.position = CGPoint(x: -(craft.size.width/2), y: -(craft.size.height/2))
-        rotateRightNode.position = CGPoint(x: craft.size.width/2, y: -(craft.size.height/2))
+        rotateLeftNode.position = CGPoint(x: -(craft.size.width/1.5), y: -(craft.size.height/1.5))
+        rotateRightNode.position = CGPoint(x: craft.size.width/1.5, y: -(craft.size.height/1.5))
         
         rotateLeftNode.targetNode = self.scene
         rotateRightNode.targetNode = self.scene
@@ -250,12 +257,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         
         craft.addChild(rotateLeftNode)
         craft.addChild(rotateRightNode)
+        
+        craft.run(entraceAnimation)
     }
     
     func removeCraft() {
         craft.removeFromParent()
-        landingGearLeft.removeFromParent()
-        landingGearRight.removeFromParent()
         
         touchesArray = []
     }
