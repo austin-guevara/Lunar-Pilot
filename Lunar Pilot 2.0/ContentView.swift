@@ -16,14 +16,15 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             SpriteView(scene: gameScene)
-//                .frame(width: screenWidth, height: screenHeight, alignment: .center)
                 .edgesIgnoringSafeArea(.all)
             VStack {
                 HStack {
-                    Label("\(Int(gameScene.fuelLevel))", systemImage: "fuelpump")
+//                    Text("Level \(gameScene.levelCount)")
+                    Label("L\(gameScene.levelCount)", systemImage: "flag")
                     Spacer()
+                    Label("\(gameScene.livesCount)", systemImage: "heart")
                     // Label("\(gameScene.crashCount)", systemImage: "burst")
-                    Label("\(gameScene.levelCount)", systemImage: "heart")
+                    // Label("\(Int(gameScene.fuelLevel))", systemImage: "fuelpump")
                 }
                 .foregroundColor(.white)
                 .padding()
@@ -31,24 +32,25 @@ struct ContentView: View {
                 Spacer()
                 HStack {
                     Button {
-                        gameScene.resetLevel()
+                        gameScene.hardResetCraft()
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .foregroundColor(.white)
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
+                    .disabled(shouldShowSettings)
                     Spacer()
                     Button {
-                        shouldShowSettings = true
-                        gameScene.isPaused = true
+                        shouldShowSettings.toggle()
+                        gameScene.isPaused = shouldShowSettings
                     } label: {
-                        Image(systemName: "gear")
+                        Image(systemName: shouldShowSettings ? "play" : "pause")
                             .foregroundColor(.white)
                     }
-                    .sheet(isPresented: $shouldShowSettings) {
-                        SettingsView(shouldShowSettings: $shouldShowSettings, gameScene: gameScene)
-                    }
+                    // .sheet(isPresented: $shouldShowSettings) {
+                    //    SettingsView(shouldShowSettings: $shouldShowSettings, gameScene: gameScene)
+                    // }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
                 }

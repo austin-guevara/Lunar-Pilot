@@ -14,20 +14,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     @Published var fuelLevel: CGFloat = 100.0
     @Published var crashCount: Int = 0
     @Published var levelCount: Int = 1
+    @Published var livesCount: Int = 5
+    @Published var gameOver = false
     
     private let gravityForce = -0.2
     private let thrustForce = 2.0
     private let rotationForce = 5.0 / 1000000
     private let fuelCost = 0.05
     
-    enum isTouching {
+    private var crashResetDelay: CGFloat = 3.5
+    private var landResetDelay: CGFloat = 0.4
+    
+    private enum isTouching {
         case left, right, both, none
     }
-    
     private var currentTouch = isTouching.none
     
-    var shouldResetCraft = false
     private var didLand = false
+    private var didDisappear = false
     private var canyonCollide = false
     
     private var screenHeight: CGFloat!
@@ -58,30 +62,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     
     private var backgroundTexture: SKSpriteNode!
     
-    private var levelSize: Int = 1
-    private var levelHeight: CGFloat!
     private var levelLabel: SKLabelNode!
     
-    private var crashResetTimer: Int = 60
+    private var crashResetDuration: Int = 0
+    private var crashResetTimer: Int = 0
+    private var crashBurstFired = false
+    
+    private var landResetTimer: Int = 0
+    private var preferredFPS: CGFloat = 0
     
     private var touchesArray = [UITouch]()
-    
-//    override init() {
-//        super.init(size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
-//    }
-//    
-//    required init?(coder aDecoder: NSCoder) {
-//       super.init(coder: aDecoder)
-//   }
     
     override func didMove(to: SKView) {
         super.didMove(to: view!)
         
-        screenHeight = self.frame.size.height;
-        screenWidth = self.frame.size.width;
+        // global utility variables
+        screenHeight = self.frame.size.height
+        screenWidth = self.frame.size.width
+        preferredFPS = CGFloat((self.scene?.view!.preferredFramesPerSecond)!)
         
+        // initialize camera position
         camera = sceneCamera
-        resetCamera()
+        camera?.position.x = screenWidth/2
+        camera?.position.y = screenHeight/2
         
         // gamescene is the physicsWorld delegate
         physicsWorld.contactDelegate = self
@@ -94,75 +97,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         
         // set crash reset timer
         setCrashResetTimer()
+        setLandResetTimer()
         
         // create the craft and canyon
-        createCanyon()
-        createBackground()
+        createLevel()
         createCraft()
-    }
-    
-    func resetCamera() {
-        camera?.position.x = screenWidth/2
-        camera?.position.y = screenHeight/2
-    }
-    
-    func createBackground() {
-        
-        // Procedurally place large, medium, and small stars as individual sprites
-        backgroundTexture = SKSpriteNode(color: UIColor.black, size: CGSizeMake(screenWidth * 10, levelHeight + screenHeight))
-        backgroundTexture.position.x = screenWidth/2
-        backgroundTexture.position.y = screenHeight - levelHeight/2
-        backgroundTexture.zPosition = -1
-        
-        let backgroundMinX = backgroundTexture.position.x - backgroundTexture.size.width/2
-        let backgroundMinY = backgroundTexture.position.y - backgroundTexture.size.height/2
-        
-        let numCols = 2 * 10
-        let numRows = 4 * levelSize
-        
-        // Create boxes based on width and height
-        // X
-        // 0 -> width/3 | width/3 -> width*2/3 | width*2/3 -> width
-        // 0/3 -> 1/3   | 1/3 -> 2/3           | 2/3 -> 3/3
-        
-        // Define rows iteration
-        for y in 1...numRows {
-            // Define column iteration
-            for x in 1...numCols {
-                let currentMinX = backgroundMinX + backgroundTexture.size.width * CGFloat((x-1))/CGFloat(numCols)
-                let currentMaxX = backgroundMinX + backgroundTexture.size.width * CGFloat(x)/CGFloat(numCols)
-                
-                let currentMinY = backgroundMinY + backgroundTexture.size.height * CGFloat((y-1))/CGFloat(numRows)
-                let currentMaxY = backgroundMinY + backgroundTexture.size.height * CGFloat(y)/CGFloat(numRows)
-                
-                // print("Add stars between \(currentMinX), \(currentMinY) and \(currentMaxX), \(currentMaxY)")
-                
-                // 1 large star per grid box
-                let starLarge = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Large"), size: CGSize(width: 20, height: 20))
-                starLarge.position = CGPoint(x: CGMath().CGRandomBetweenNumbers(from: currentMinX, to: currentMaxX), y: CGMath().CGRandomBetweenNumbers(from: currentMinY, to: currentMaxY))
-                backgroundTexture.addChild(starLarge)
-                
-                // 2 medium stars per grid box
-                for _ in 1...2 {
-                    let starMedium = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Medium"), size: CGSize(width: 10, height: 10))
-                    starMedium.position = CGPoint(x: CGMath().CGRandomBetweenNumbers(from: currentMinX, to: currentMaxX), y: CGMath().CGRandomBetweenNumbers(from: currentMinY, to: currentMaxY))
-                    backgroundTexture.addChild(starMedium)
-                }
-                
-                // 3 small stars per grid box
-                for _ in 1...3 {
-                    let starSmall = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Small"), size: CGSize(width: 5, height: 5))
-                    starSmall.position = CGPoint(x: CGMath().CGRandomBetweenNumbers(from: currentMinX, to: currentMaxX), y: CGMath().CGRandomBetweenNumbers(from: currentMinY, to: currentMaxY))
-                    backgroundTexture.addChild(starSmall)
-                }
-            }
-        }
-        
-        self.addChild(backgroundTexture)
     }
     
     func createCraft() {
         
+        fuelLevel = 100
         let entraceAnimation = SKAction.sequence([SKAction.fadeIn(withDuration: 0.3),
                                                   SKAction.scale(to: 1, duration: 0.3)])
         entraceAnimation.timingMode = .easeInEaseOut
@@ -261,13 +205,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         craft.run(entraceAnimation)
     }
     
-    func removeCraft() {
-        craft.removeFromParent()
+    func removeCraft(animated: Bool) {
+        if animated {
+            let exitAnimation = SKAction.sequence([SKAction.fadeOut(withDuration: 0.3),
+                                                      SKAction.scale(to: 0.5, duration: 0.3)])
+            exitAnimation.timingMode = .easeInEaseOut
+            craft.run(exitAnimation)
+        }
         
+        craft.removeFromParent()
         touchesArray = []
     }
     
-    func createCanyon() {
+    func createLevel() {
+        // Generate a level height as a multiplier of screen height
+        let size = Int.random(in: 1...3)
+        let height = CGFloat(size) * screenHeight
+        
+        // Create Canyon and Background
+        createCanyon(levelSize: size, levelHeight: height)
+        createBackground(levelSize: size, levelHeight: height)
+    }
+    
+    func createCanyon(levelSize: Int, levelHeight: CGFloat) {
         
         // Create center of path, stored as array
         var canyonRoutePath: [[CGFloat]] = []
@@ -277,10 +237,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         // along with the x position of the craft
         var pathX: CGFloat = screenWidth/2
         var pathY: CGFloat = screenHeight - 250
-        
-        // Generate a level height as a multiplier of screen height
-        levelSize = Int.random(in: 1...3)
-        levelHeight = CGFloat(levelSize) * screenHeight
         
         canyonRoutePath.append([pathX,pathY])
         
@@ -387,6 +343,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         borderLeft.fillColor = UIColor.black
         borderLeft.strokeColor = UIColor.darkGray
         borderLeft.lineWidth = 2
+        borderLeft.alpha = 0
+        borderLeft.run(SKAction.fadeIn(withDuration: 0.5))
         self.addChild(borderLeft)
         
         borderRight = SKShapeNode(path: rightPath)
@@ -397,14 +355,73 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         borderRight.fillColor = UIColor.black
         borderRight.strokeColor = UIColor.darkGray
         borderRight.lineWidth = 2
+        borderRight.run(SKAction.fadeIn(withDuration: 0.5))
         self.addChild(borderRight)
         
-        // Hacky, but create a rect to cover the connecting line underneath the pad
+        // Create a rect to cover the connecting line underneath the pad
         let edgeCover = SKShapeNode(rectOf: CGSize(width: 10, height: screenHeight))
         edgeCover.fillColor = UIColor.black
         edgeCover.lineWidth = 0
         edgeCover.position = CGPoint(x: pad.position.x, y: pad.position.y - edgeCover.frame.height/2 - pad.size.height/2 - 1)
         borderRight.addChild(edgeCover)
+    }
+    
+    func createBackground(levelSize: Int, levelHeight: CGFloat) {
+        
+        // Procedurally place large, medium, and small stars as individual sprites
+        backgroundTexture = SKSpriteNode(color: UIColor.black, size: CGSizeMake(screenWidth * 10, levelHeight + screenHeight))
+        backgroundTexture.position.x = screenWidth/2
+        backgroundTexture.position.y = screenHeight - levelHeight/2
+        backgroundTexture.zPosition = -1
+        
+        let backgroundMinX = backgroundTexture.position.x - backgroundTexture.size.width/2
+        let backgroundMinY = backgroundTexture.position.y - backgroundTexture.size.height/2
+        
+        let numCols = 2 * 10
+        let numRows = 4 * levelSize
+        
+        // Create boxes based on width and height
+        // X
+        // 0 -> width/3 | width/3 -> width*2/3 | width*2/3 -> width
+        // 0/3 -> 1/3   | 1/3 -> 2/3           | 2/3 -> 3/3
+        
+        // Define rows iteration
+        for y in 1...numRows {
+            // Define column iteration
+            for x in 1...numCols {
+                let currentMinX = backgroundMinX + backgroundTexture.size.width * CGFloat((x-1))/CGFloat(numCols)
+                let currentMaxX = backgroundMinX + backgroundTexture.size.width * CGFloat(x)/CGFloat(numCols)
+                
+                let currentMinY = backgroundMinY + backgroundTexture.size.height * CGFloat((y-1))/CGFloat(numRows)
+                let currentMaxY = backgroundMinY + backgroundTexture.size.height * CGFloat(y)/CGFloat(numRows)
+                
+                // print("Add stars between \(currentMinX), \(currentMinY) and \(currentMaxX), \(currentMaxY)")
+                
+                // 1 large star per grid box
+                let starLarge = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Large"), size: CGSize(width: 20, height: 20))
+                starLarge.position = CGPoint(x: CGMath().CGRandomBetweenNumbers(from: currentMinX, to: currentMaxX), y: CGMath().CGRandomBetweenNumbers(from: currentMinY, to: currentMaxY))
+                backgroundTexture.addChild(starLarge)
+                
+                // 2 medium stars per grid box
+                for _ in 1...2 {
+                    let starMedium = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Medium"), size: CGSize(width: 10, height: 10))
+                    starMedium.position = CGPoint(x: CGMath().CGRandomBetweenNumbers(from: currentMinX, to: currentMaxX), y: CGMath().CGRandomBetweenNumbers(from: currentMinY, to: currentMaxY))
+                    backgroundTexture.addChild(starMedium)
+                }
+                
+                // 3 small stars per grid box
+                for _ in 1...3 {
+                    let starSmall = SKSpriteNode(texture: SKTexture(imageNamed: "Star_Small"), size: CGSize(width: 5, height: 5))
+                    starSmall.position = CGPoint(x: CGMath().CGRandomBetweenNumbers(from: currentMinX, to: currentMaxX), y: CGMath().CGRandomBetweenNumbers(from: currentMinY, to: currentMaxY))
+                    backgroundTexture.addChild(starSmall)
+                }
+            }
+        }
+        
+        backgroundTexture.alpha = 0
+        backgroundTexture.run(SKAction.sequence([SKAction.wait(forDuration: 1),
+                                                 SKAction.fadeIn(withDuration: 0.5)]))
+        self.addChild(backgroundTexture)
     }
     
     func resetLevel() {
@@ -417,16 +434,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         levelLabel.removeFromParent()
         
         // redraw level
-        createCanyon()
-        createBackground()
+        createLevel()
         
         // reset craft
-        removeCraft()
-        shouldResetCraft = true
+        removeCraft(animated: true)
+        createCraft()
+        didLand = false
+        didDisappear = false
     }
     
     func setCrashResetTimer() {
-        crashResetTimer = (self.scene?.view?.preferredFramesPerSecond ?? 60) * 3
+        crashResetDuration = Int(preferredFPS * crashResetDelay)
+        crashResetTimer = crashResetDuration
+    }
+    
+    func setLandResetTimer() {
+        landResetTimer = Int(preferredFPS * landResetDelay)
     }
         
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -480,14 +503,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
             currentTouch = isTouching.none
         }
     }
-
+    
+    func hardResetCraft() {
+        craft.removeFromParent()
+        craft.removeAllChildren()
+        
+        crashBurstFired = false
+        canyonCollide = false
+        
+        setCrashResetTimer()
+        createCraft()
+    }
+    
     override func update(_ currentTime: TimeInterval) {
         
-        if shouldResetCraft {
-            fuelLevel = 100
-            
-            createCraft()
-            shouldResetCraft = false
+        if livesCount <= 0 {
+            gameOver = true
         }
         
         if canyonCollide {
@@ -496,76 +527,92 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
             self.physicsWorld.remove(fixedJoint)
             self.physicsWorld.remove(sliderJoint)
             self.physicsWorld.remove(springJoint)
-            // Need to set a delay before placing explosion emitter and resetting craft
             
             crashResetTimer -= 1
-            if crashResetTimer <= 0 {
+            
+            if crashResetTimer <= (crashResetDuration - (self.scene?.view!.preferredFramesPerSecond)! * 3) && crashBurstFired == false {
                 crashNode = SKEmitterNode(fileNamed: "BurstParticle.sks")
                 crashNode.position = craft.position
                 crashNode.targetNode = self.scene
                 self.addChild(crashNode)
                 
+                removeCraft(animated: false)
+                crashBurstFired = true
+            } else if crashResetTimer <= 0 {
                 crashCount += 1
+                livesCount -= 1
                 
                 setCrashResetTimer()
-                removeCraft()
+                createCraft()
                 
-                shouldResetCraft = true
+                crashBurstFired = false
                 canyonCollide = false
-                
             }
         }
         
         if didLand {
             if abs(craft.physicsBody!.velocity.dx) <= 0.2 && abs(craft.physicsBody!.velocity.dy) <= 0.2 {
-                levelCount += 1
-                resetLevel()
-                didLand = false
+                let exitAnimation = SKAction.sequence([SKAction.scale(to: 0.5, duration: 0.3),
+                                                       SKAction.fadeOut(withDuration: 0.3)])
+                craft.run(exitAnimation)
+                
+                didDisappear = true
             }
         }
         
-        if fuelLevel > 0 {
-            switch currentTouch {
-            case .both:
-                
-                // update fuel level
-                fuelLevel -= fuelCost
-                
-                // apply thrust
-                craft.physicsBody!.applyForce(CGMath().createThrustVector(r: thrustForce, sprite:craft))
-                
-                // add thrust particle emitter
-                thrustNode.particleBirthRate = 200
-                
-            case .left:
-                
-                // update fuel level
-                fuelLevel -= fuelCost/2
-                
-                // rotate left
-                craft.physicsBody!.applyAngularImpulse(rotationForce)
-                
-                // add rotate particle emitter
-                rotateLeftNode.particleBirthRate = 100
-                
-            case .right:
-                
-                // update fuel level
-                fuelLevel -= fuelCost/2
-                
-                // rotate right
-                craft.physicsBody!.applyAngularImpulse(-rotationForce)
-                
-                // add rotate particle emitter
-                rotateRightNode.particleBirthRate = 100
-                
-            case .none:
-                
-                // turn off thrust
-                thrustNode.particleBirthRate = 0
-                rotateLeftNode.particleBirthRate = 0
-                rotateRightNode.particleBirthRate = 0
+        if didDisappear {
+            landResetTimer -= 1
+            
+            if landResetTimer <= 0 {
+                // once timer runs out, then reset the level
+                levelCount += 1
+                resetLevel()
+                setLandResetTimer()
             }
+        }
+        
+        // if we want fuel running out to factor in, we can wrap in this conditional
+        // if fuelLevel > 0
+        switch currentTouch {
+        case .both:
+            
+            // update fuel level
+            fuelLevel -= fuelCost
+            
+            // apply thrust
+            craft.physicsBody!.applyForce(CGMath().createThrustVector(r: thrustForce, sprite:craft))
+            
+            // add thrust particle emitter
+            thrustNode.particleBirthRate = 200
+            
+        case .left:
+            
+            // update fuel level
+            fuelLevel -= fuelCost/2
+            
+            // rotate left
+            craft.physicsBody!.applyAngularImpulse(rotationForce)
+            
+            // add rotate particle emitter
+            rotateLeftNode.particleBirthRate = 100
+            
+        case .right:
+            
+            // update fuel level
+            fuelLevel -= fuelCost/2
+            
+            // rotate right
+            craft.physicsBody!.applyAngularImpulse(-rotationForce)
+            
+            // add rotate particle emitter
+            rotateRightNode.particleBirthRate = 100
+            
+        case .none:
+            
+            // turn off thrust
+            thrustNode.particleBirthRate = 0
+            rotateLeftNode.particleBirthRate = 0
+            rotateRightNode.particleBirthRate = 0
         }
     }
     
