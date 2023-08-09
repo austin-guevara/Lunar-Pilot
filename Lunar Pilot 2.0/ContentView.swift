@@ -8,24 +8,9 @@
 import SpriteKit
 import SwiftUI
 
-//class SceneStore: ObservableObject {
-//
-//    @Published var scene = GameScene()
-//    @Published var levelCount = 5
-//
-//    init() {
-//        scene.size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-//        scene.scaleMode = .fill
-//        scene.backgroundColor = .black
-//
-//        scene.levelCount = levelCount
-//    }
-//}
-
 struct ContentView: View {
     
     @State private var shouldShowSettings = false
-    
     @StateObject private var gameScene = GameScene()
     
     var body: some View {
@@ -64,9 +49,6 @@ struct ContentView: View {
                             .foregroundColor(.white)
                     }
                     .sheet(isPresented: $shouldShowSettings) {
-                        // For some reason, when this is called, it is also re-initializing the whole GameScene
-                        // This is a problem because it re-draws the level, resets the score, etc...
-                        // We only want it to pause the game
                         SettingsView(shouldShowSettings: $shouldShowSettings)
                     }
                     .buttonStyle(.bordered)
@@ -76,20 +58,22 @@ struct ContentView: View {
             }
             .padding()
             .edgesIgnoringSafeArea(.all)
+            .onAppear() {
+                gameScene.size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+                gameScene.scaleMode = .fill
+                gameScene.backgroundColor = .black
+            }
         }
         .statusBar(hidden: true)
         .persistentSystemOverlays(.hidden)
     }
     
     struct SettingsView: View {
-        // @Binding var gameIsPaused: Bool
         @Binding var shouldShowSettings: Bool
 
         var body: some View {
             Button("Press to dismiss") {
                 shouldShowSettings = false
-//                SceneStore.scene.isPaused = false
-                // gameIsPaused = false
             }
             .padding()
         }
