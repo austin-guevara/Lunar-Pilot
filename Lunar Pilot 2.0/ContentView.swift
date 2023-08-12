@@ -20,7 +20,7 @@ struct ContentView: View {
             VStack {
                 HStack {
 //                    Text("Level \(gameScene.levelCount)")
-                    Label("L\(gameScene.levelCount)", systemImage: "flag")
+                    Label("\(gameScene.levelCount)", systemImage: "flag")
                     Spacer()
                     Label("\(gameScene.livesCount)", systemImage: "heart")
                     // Label("\(gameScene.crashCount)", systemImage: "burst")

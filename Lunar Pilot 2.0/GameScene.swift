@@ -23,7 +23,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     private let fuelCost = 0.05
     
     private var crashResetDelay: CGFloat = 3.5
-    private var landResetDelay: CGFloat = 0.4
+    private var landResetDelay: CGFloat = 1.0
     
     private enum isTouching {
         case left, right, both, none
@@ -54,6 +54,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     private var fixedJoint: SKPhysicsJointFixed!
     private var springJoint: SKPhysicsJointSpring!
     private var sliderJoint: SKPhysicsJointSliding!
+    private var transitionRect: SKShapeNode!
     
     private var thrustNode: SKEmitterNode!
     private var rotateLeftNode: SKEmitterNode!
@@ -207,8 +208,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     
     func removeCraft(animated: Bool) {
         if animated {
-            let exitAnimation = SKAction.sequence([SKAction.fadeOut(withDuration: 0.3),
-                                                      SKAction.scale(to: 0.5, duration: 0.3)])
+            let exitAnimation = SKAction.sequence([SKAction.scale(to: 0.5, duration: 0.3),
+                                                   SKAction.fadeOut(withDuration: 0.3)])
             exitAnimation.timingMode = .easeInEaseOut
             craft.run(exitAnimation)
         }
@@ -355,6 +356,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         borderRight.fillColor = UIColor.black
         borderRight.strokeColor = UIColor.darkGray
         borderRight.lineWidth = 2
+        borderRight.alpha = 0
         borderRight.run(SKAction.fadeIn(withDuration: 0.5))
         self.addChild(borderRight)
         
@@ -426,12 +428,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     
     func resetLevel() {
         
-        // remove current level
         borderLeft.removeFromParent()
         borderRight.removeFromParent()
         backgroundTexture.removeFromParent()
         pad.removeFromParent()
         levelLabel.removeFromParent()
+        transitionRect.removeFromParent()
         
         // redraw level
         createLevel()
@@ -552,9 +554,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         
         if didLand {
             if abs(craft.physicsBody!.velocity.dx) <= 0.2 && abs(craft.physicsBody!.velocity.dy) <= 0.2 {
-                let exitAnimation = SKAction.sequence([SKAction.scale(to: 0.5, duration: 0.3),
-                                                       SKAction.fadeOut(withDuration: 0.3)])
-                craft.run(exitAnimation)
+                let craftExitAnimation = SKAction.sequence([SKAction.scale(to: 0.5, duration: 0.3),
+                                                            SKAction.fadeOut(withDuration: 0.3)])
+                let levelExitAnimation = SKAction.sequence([SKAction.wait(forDuration: 0.4),
+                                                            SKAction.fadeIn(withDuration: 0.3)])
+                
+                transitionRect = SKShapeNode(rectOf: CGSize(width: screenWidth * 2, height: screenHeight * 2))
+                transitionRect.fillColor = UIColor.black
+                transitionRect.alpha = 0
+                transitionRect.position = camera!.position
+                self.addChild(transitionRect)
+                
+                // fade out level elements before they are removed later
+                craft.run(craftExitAnimation)
+                transitionRect.run(levelExitAnimation)
                 
                 didDisappear = true
             }
