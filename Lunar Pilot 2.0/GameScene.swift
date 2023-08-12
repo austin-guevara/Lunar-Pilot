@@ -118,13 +118,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         craft.physicsBody = SKPhysicsBody(texture: SKTexture(imageNamed: "Craft-Body_Collision"), size: CGSize(width: craft.size.width - 4, height: craft.size.height - 4))
         
         craft.physicsBody!.angularDamping = 1
+        craft.alpha = 0
+        craft.xScale = 0.5
+        craft.yScale = 0.5
         
         craft.physicsBody!.categoryBitMask = CraftCategory
         craft.physicsBody!.contactTestBitMask = BorderCategory
         craft.position = CGPoint(x: screenWidth/2, y: screenHeight-75)
-        craft.alpha = 0
-        craft.xScale = 0.5
-        craft.yScale = 0.5
         self.addChild(craft)
         
         // Create landing gear left
@@ -310,7 +310,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         self.addChild(pad)
         
         levelLabel = SKLabelNode(fontNamed: "SpaceMono-Bold")
-        levelLabel.fontColor = SKColor.white
+        levelLabel.fontColor = UIColor(named: "PadColor")
         levelLabel.text = "\(levelCount)"
         levelLabel.fontSize = 16
         levelLabel.position = CGPoint(x: pad.position.x, y: (pad.position.y + 10))
@@ -366,6 +366,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         edgeCover.lineWidth = 0
         edgeCover.position = CGPoint(x: pad.position.x, y: pad.position.y - edgeCover.frame.height/2 - pad.size.height/2 - 1)
         borderRight.addChild(edgeCover)
+        
+        // Create the cover rect for transitioning the scene away later
+        transitionRect = SKShapeNode(rectOf: CGSize(width: screenWidth * 2, height: screenHeight * 2))
+        transitionRect.fillColor = UIColor.black
+        transitionRect.alpha = 0
+        transitionRect.position = CGPoint(x: pad.position.x, y: pad.position.y + screenHeight/3)
+        self.addChild(transitionRect)
     }
     
     func createBackground(levelSize: Int, levelHeight: CGFloat) {
@@ -554,18 +561,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         
         if didLand {
             if abs(craft.physicsBody!.velocity.dx) <= 0.2 && abs(craft.physicsBody!.velocity.dy) <= 0.2 {
+                
+                // Fade out level elements before they are removed later
                 let craftExitAnimation = SKAction.sequence([SKAction.scale(to: 0.5, duration: 0.3),
                                                             SKAction.fadeOut(withDuration: 0.3)])
                 let levelExitAnimation = SKAction.sequence([SKAction.wait(forDuration: 0.4),
                                                             SKAction.fadeIn(withDuration: 0.3)])
-                
-                transitionRect = SKShapeNode(rectOf: CGSize(width: screenWidth * 2, height: screenHeight * 2))
-                transitionRect.fillColor = UIColor.black
-                transitionRect.alpha = 0
-                transitionRect.position = camera!.position
-                self.addChild(transitionRect)
-                
-                // fade out level elements before they are removed later
                 craft.run(craftExitAnimation)
                 transitionRect.run(levelExitAnimation)
                 
