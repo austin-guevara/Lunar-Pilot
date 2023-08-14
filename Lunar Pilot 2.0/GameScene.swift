@@ -105,6 +105,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         createCraft()
     }
     
+    func resetGame() {
+        gameOver = false
+        livesCount = 5
+        levelCount = 1
+        isPaused = false
+        
+        resetLevel()
+    }
+    
     func createCraft() {
         
         fuelLevel = 100
@@ -216,6 +225,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         
         craft.removeFromParent()
         touchesArray = []
+        currentTouch = isTouching.none
     }
     
     func createLevel() {
