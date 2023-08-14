@@ -20,11 +20,11 @@ struct ContentView: View {
     
     private let messages = [
         "Greetings, Lunar Pilot! Your mission is to navigate the Lunar craft to the bottom of the canyon.",
-        "The landing gear can safely bounce off the canyon walls, but be sure not to fall too hard, or collide with the canyon walls, or you’ll crash!",
+        "The landing gear can safely bounce off the canyon walls. But be sure not to fall too hard, or collide with the canyon walls, or you’ll crash!",
         "Tap and hold on the left side of the screen to rotate left.",
         "Tap and hold on the right side of the screen to rotate right.",
         "Tap and hold on both sides of the screen simultaneously to engage thrusters.",
-        "Good luck, pilot! May your lunar aspirations soar high and far!"
+        "Good luck, pilot! Get as far as you can."
     ]
     
     var body: some View {
