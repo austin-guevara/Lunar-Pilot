@@ -59,7 +59,7 @@
 		13B4FC262A4B1C2200D74602 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		13F3F4062A5CA95A0012AE47 /* SpaceMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Regular.ttf"; sourceTree = "<group>"; };
 		13F3F4072A5CA95B0012AE47 /* SpaceMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Bold.ttf"; sourceTree = "<group>"; };
-		13F3F40A2A5CA9AE0012AE47 /* Lunar-Pilot-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Lunar-Pilot-Info.plist"; sourceTree = SOURCE_ROOT; };
+		13F3F40A2A5CA9AE0012AE47 /* Lunar-Pilot-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Lunar-Pilot-Info.plist"; path = "Lunar Pilot/Assets/Lunar-Pilot-Info.plist"; sourceTree = SOURCE_ROOT; };
 		13F99EDA2A66FF8E0044FBC5 /* BurstParticle.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = BurstParticle.sks; sourceTree = "<group>"; };
 		13FBECEC2A4B894C00074D44 /* CGMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGMath.swift; sourceTree = "<group>"; };
 		13FBECF02A4C7D2C00074D44 /* CGAudio.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGAudio.swift; sourceTree = "<group>"; };
@@ -122,6 +122,7 @@
 			isa = PBXGroup;
 			children = (
 				13B4FC002A4B1A2100D74602 /* Assets.xcassets */,
+				13F3F40A2A5CA9AE0012AE47 /* Lunar-Pilot-Info.plist */,
 				13F3F4052A5CA8510012AE47 /* Fonts */,
 				1317D4A52A718E8300122154 /* Sprite Assets */,
 			);
@@ -165,7 +166,6 @@
 				13B195022A8BB4A40002BA73 /* Utilities */,
 				13B195042A8BB4E00002BA73 /* Assets */,
 				13B4FC022A4B1A2100D74602 /* Preview Content */,
-				13F3F40A2A5CA9AE0012AE47 /* Lunar-Pilot-Info.plist */,
 			);
 			path = "Lunar Pilot";
 			sourceTree = "<group>";
