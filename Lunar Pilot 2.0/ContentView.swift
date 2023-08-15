@@ -24,7 +24,7 @@ struct ContentView: View {
         "Tap and hold on the left side of the screen to rotate left.",
         "Tap and hold on the right side of the screen to rotate right.",
         "Tap and hold on both sides of the screen simultaneously to engage thrusters.",
-        "Good luck, pilot! Get as far as you can."
+        "Good luck, pilot! Explore as many canyons as possible. In the name of science!"
     ]
     
     var body: some View {
@@ -37,7 +37,7 @@ struct ContentView: View {
                     gameScene.size = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
                     gameScene.scaleMode = .fill
                     gameScene.backgroundColor = .black
-                     gameScene.livesCount = 1
+                    // gameScene.livesCount = 1
                 }
             
             // MARK: - Game Controls

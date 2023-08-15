@@ -248,7 +248,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 13B4FBF42A4B1A1F00D74602 /* Build configuration list for PBXProject "Lunar Pilot 2.0" */;
+			buildConfigurationList = 13B4FBF42A4B1A1F00D74602 /* Build configuration list for PBXProject "Lunar Pilot" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -600,7 +600,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B4FBF42A4B1A1F00D74602 /* Build configuration list for PBXProject "Lunar Pilot 2.0" */ = {
+		13B4FBF42A4B1A1F00D74602 /* Build configuration list for PBXProject "Lunar Pilot" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B4FC1B2A4B1A2200D74602 /* Debug */,
