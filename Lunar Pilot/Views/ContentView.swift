@@ -93,23 +93,8 @@ struct ContentView: View {
                                 typeWriterRunning = true
                                 typeWriter(withText: messages[0])
                             }
-                        Button((currentMessageIndex + 1) == messages.count ? "Tap to Close" : "Tap to Continue") {
-                            if typeWriterRunning {
-                                typeWriterRunning = false
-                                return
-                            }
-                            if (currentMessageIndex + 1) <= messages.count {
-                                currentMessageIndex += 1
-                                if messages.indices.contains(currentMessageIndex) {
-                                    typeWriterRunning = true
-                                    typeWriter(withText: messages[currentMessageIndex])
-                                } else {
-                                    shouldPresentInstructions = false
-                                    gameScene.isPaused = false
-                                }
-                            }
-                        }
-                        .font(Font.custom("SpaceMono-Bold", size: 12))
+                        Text((currentMessageIndex + 1) == messages.count ? "Tap to Close" : "Tap to Continue")
+                            .font(Font.custom("SpaceMono-Bold", size: 12))
                     }
                     .padding()
                     .font(Font.custom("SpaceMono-Bold", size: 16))
@@ -123,7 +108,24 @@ struct ContentView: View {
                         gameScene.isPaused = true
                     }
                 }
-                // .transition(.fade)
+                .onTapGesture() {
+                    if typeWriterRunning {
+                        typeWriterRunning = false
+                        return
+                    }
+                    if (currentMessageIndex + 1) <= messages.count {
+                        currentMessageIndex += 1
+                        if messages.indices.contains(currentMessageIndex) {
+                            typeWriterRunning = true
+                            typeWriter(withText: messages[currentMessageIndex])
+                        } else {
+                            shouldPresentInstructions = false
+                            gameScene.isPaused = false
+                        }
+                    }
+                }
+                .zIndex(2)
+                .transition(AnyTransition.opacity.animation(.easeInOut(duration: 0.3)))
             }
             
             // MARK: - GameOver Message
