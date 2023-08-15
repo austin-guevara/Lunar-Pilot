@@ -12,9 +12,11 @@ struct ContentView: View {
     
     // Need to wait for iOS 17
     // @Bindable var player: Player
+    @State private var highScore: Int = 0
     
-    @State private var shouldPauseGame = false
-    @State private var shouldPresentInstructions = true
+    @State private var shouldPauseGame = true
+    @State private var shouldPresentInstructions = false
+    @State private var firstLoad = true
     @StateObject private var gameScene = GameScene()
     
     @State private var playerMessage: String = ""
@@ -83,8 +85,46 @@ struct ContentView: View {
             .padding()
             .edgesIgnoringSafeArea(.all)
             
+            // MARK: - Game Menu
+            if shouldPauseGame {
+                VStack(spacing: 12) {
+                    Text(firstLoad ? "Lunar Pilot" : "Game Paused")
+                        .font(Font.custom("SpaceMono-Bold", size: 24))
+                    Text(highScore > 0 ? "High Score: \(highScore)" : "Play to set a high score!")
+                    Button(firstLoad ? "Play Game" : "Resume Game") {
+                        gameScene.isPaused = false
+                        shouldPauseGame = false
+                        
+                        if firstLoad {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                shouldPresentInstructions = true
+                            }
+                        }
+                        
+                        firstLoad = false
+                    }
+                    .font(Font.custom("SpaceMono-Bold", size: 16))
+                    .padding([.top, .bottom], 4)
+                    .padding([.leading, .trailing], 12)
+                    .background(Color.black)
+                    .border(Color.gray, width: 1)
+                }
+                .padding()
+                .font(Font.custom("SpaceMono-Bold", size: 16))
+                .background(Color.black)
+                .foregroundColor(Color.white)
+                .border(Color.white, width: 1)
+                .onAppear() {
+                    if firstLoad {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                            gameScene.isPaused = true
+                        }
+                    }
+                }
+            }
+            
             // MARK: - Pilot Instructions
-            if shouldPresentInstructions {
+            if shouldPresentInstructions && !shouldPauseGame {
                 VStack {
                     Spacer()
                     VStack(spacing: 8) {
@@ -104,9 +144,7 @@ struct ContentView: View {
                 }
                 .padding()
                 .onAppear() {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
-                        gameScene.isPaused = true
-                    }
+                    gameScene.isPaused = true
                 }
                 .onTapGesture() {
                     if typeWriterRunning {
@@ -133,8 +171,11 @@ struct ContentView: View {
                 VStack {
                     VStack(spacing: 12) {
                         Text("GAME OVER")
-                        Text("You made it to level \(gameScene.levelCount).")
-                            .font(Font.custom("SpaceMono-Bold", size: 16))
+                        VStack {
+                            Text("You made it to level \(gameScene.levelCount).")
+                            Text(gameScene.levelCount > highScore ? "That’s a new high score!" : "Great attempt, pilot.")
+                        }
+                        .font(Font.custom("SpaceMono-Bold", size: 16))
                         Button("New Game") {
                             gameScene.resetGame()
                         }
@@ -153,6 +194,10 @@ struct ContentView: View {
                 .padding()
                 .onAppear() {
                     gameScene.isPaused = true
+                    
+                    if gameScene.levelCount > highScore {
+                        highScore = gameScene.levelCount
+                    }
                 }
             }
         }
