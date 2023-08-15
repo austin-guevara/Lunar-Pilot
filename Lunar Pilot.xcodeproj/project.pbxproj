@@ -10,6 +10,13 @@
 		1317D4A42A7186B700122154 /* Stars.sks in Resources */ = {isa = PBXBuildFile; fileRef = 1317D4A32A7186B700122154 /* Stars.sks */; };
 		138A59502A5768F6007248FC /* ThrustParticle.sks in Resources */ = {isa = PBXBuildFile; fileRef = 138A594F2A5768F6007248FC /* ThrustParticle.sks */; };
 		13B195072A8BB5260002BA73 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B195062A8BB5260002BA73 /* Player.swift */; };
+		13B1950A2A8C11590002BA73 /* thrust.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 13B195092A8C11590002BA73 /* thrust.mp3 */; };
+		13B195112A8C1BA90002BA73 /* thrustSide.wav in Resources */ = {isa = PBXBuildFile; fileRef = 13B1950B2A8C1BA80002BA73 /* thrustSide.wav */; };
+		13B195122A8C1BA90002BA73 /* thrust.wav in Resources */ = {isa = PBXBuildFile; fileRef = 13B1950C2A8C1BA80002BA73 /* thrust.wav */; };
+		13B195132A8C1BA90002BA73 /* appear.wav in Resources */ = {isa = PBXBuildFile; fileRef = 13B1950D2A8C1BA80002BA73 /* appear.wav */; };
+		13B195142A8C1BA90002BA73 /* disappear.wav in Resources */ = {isa = PBXBuildFile; fileRef = 13B1950E2A8C1BA80002BA73 /* disappear.wav */; };
+		13B195152A8C1BA90002BA73 /* break.wav in Resources */ = {isa = PBXBuildFile; fileRef = 13B1950F2A8C1BA90002BA73 /* break.wav */; };
+		13B195162A8C1BA90002BA73 /* explosion.wav in Resources */ = {isa = PBXBuildFile; fileRef = 13B195102A8C1BA90002BA73 /* explosion.wav */; };
 		13B4FBFD2A4B1A1F00D74602 /* Lunar_Pilot_App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_App.swift */; };
 		13B4FBFF2A4B1A1F00D74602 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B4FBFE2A4B1A1F00D74602 /* ContentView.swift */; };
 		13B4FC012A4B1A2100D74602 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B4FC002A4B1A2100D74602 /* Assets.xcassets */; };
@@ -22,7 +29,7 @@
 		13F3F4092A5CA95B0012AE47 /* SpaceMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 13F3F4072A5CA95B0012AE47 /* SpaceMono-Bold.ttf */; };
 		13F99EDB2A66FF8E0044FBC5 /* BurstParticle.sks in Resources */ = {isa = PBXBuildFile; fileRef = 13F99EDA2A66FF8E0044FBC5 /* BurstParticle.sks */; };
 		13FBECED2A4B894C00074D44 /* CGMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13FBECEC2A4B894C00074D44 /* CGMath.swift */; };
-		13FBECF12A4C7D2C00074D44 /* CGAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13FBECF02A4C7D2C00074D44 /* CGAudio.swift */; };
+		13FBECF12A4C7D2C00074D44 /* AVAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13FBECF02A4C7D2C00074D44 /* AVAudio.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +53,13 @@
 		1317D4A32A7186B700122154 /* Stars.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Stars.sks; sourceTree = "<group>"; };
 		138A594F2A5768F6007248FC /* ThrustParticle.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = ThrustParticle.sks; sourceTree = "<group>"; };
 		13B195062A8BB5260002BA73 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
+		13B195092A8C11590002BA73 /* thrust.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = thrust.mp3; sourceTree = "<group>"; };
+		13B1950B2A8C1BA80002BA73 /* thrustSide.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = thrustSide.wav; sourceTree = "<group>"; };
+		13B1950C2A8C1BA80002BA73 /* thrust.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = thrust.wav; sourceTree = "<group>"; };
+		13B1950D2A8C1BA80002BA73 /* appear.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = appear.wav; sourceTree = "<group>"; };
+		13B1950E2A8C1BA80002BA73 /* disappear.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = disappear.wav; sourceTree = "<group>"; };
+		13B1950F2A8C1BA90002BA73 /* break.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = break.wav; sourceTree = "<group>"; };
+		13B195102A8C1BA90002BA73 /* explosion.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = explosion.wav; sourceTree = "<group>"; };
 		13B4FBF92A4B1A1F00D74602 /* Lunar Pilot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lunar Pilot.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lunar_Pilot_App.swift; sourceTree = "<group>"; };
 		13B4FBFE2A4B1A1F00D74602 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -62,7 +76,7 @@
 		13F3F40A2A5CA9AE0012AE47 /* Lunar-Pilot-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Lunar-Pilot-Info.plist"; sourceTree = SOURCE_ROOT; };
 		13F99EDA2A66FF8E0044FBC5 /* BurstParticle.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = BurstParticle.sks; sourceTree = "<group>"; };
 		13FBECEC2A4B894C00074D44 /* CGMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGMath.swift; sourceTree = "<group>"; };
-		13FBECF02A4C7D2C00074D44 /* CGAudio.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGAudio.swift; sourceTree = "<group>"; };
+		13FBECF02A4C7D2C00074D44 /* AVAudio.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AVAudio.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,20 +104,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1317D4A52A718E8300122154 /* Sprite Assets */ = {
+		1317D4A52A718E8300122154 /* Particle Effects */ = {
 			isa = PBXGroup;
 			children = (
 				138A594F2A5768F6007248FC /* ThrustParticle.sks */,
 				1317D4A32A7186B700122154 /* Stars.sks */,
 				13F99EDA2A66FF8E0044FBC5 /* BurstParticle.sks */,
 			);
-			path = "Sprite Assets";
+			path = "Particle Effects";
 			sourceTree = "<group>";
 		};
 		13B195022A8BB4A40002BA73 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				13FBECF02A4C7D2C00074D44 /* CGAudio.swift */,
+				13FBECF02A4C7D2C00074D44 /* AVAudio.swift */,
 				13FBECEC2A4B894C00074D44 /* CGMath.swift */,
 			);
 			path = Utilities;
@@ -121,9 +135,10 @@
 		13B195042A8BB4E00002BA73 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
+				13B195082A8C11490002BA73 /* Audio */,
 				13B4FC002A4B1A2100D74602 /* Assets.xcassets */,
 				13F3F4052A5CA8510012AE47 /* Fonts */,
-				1317D4A52A718E8300122154 /* Sprite Assets */,
+				1317D4A52A718E8300122154 /* Particle Effects */,
 			);
 			path = Assets;
 			sourceTree = "<group>";
@@ -134,6 +149,20 @@
 				13B195062A8BB5260002BA73 /* Player.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		13B195082A8C11490002BA73 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				13B1950D2A8C1BA80002BA73 /* appear.wav */,
+				13B1950F2A8C1BA90002BA73 /* break.wav */,
+				13B1950E2A8C1BA80002BA73 /* disappear.wav */,
+				13B195102A8C1BA90002BA73 /* explosion.wav */,
+				13B1950B2A8C1BA80002BA73 /* thrustSide.wav */,
+				13B1950C2A8C1BA80002BA73 /* thrust.wav */,
+				13B195092A8C11590002BA73 /* thrust.mp3 */,
+			);
+			path = Audio;
 			sourceTree = "<group>";
 		};
 		13B4FBF02A4B1A1F00D74602 = {
@@ -308,12 +337,19 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13B195132A8C1BA90002BA73 /* appear.wav in Resources */,
 				13B4FC042A4B1A2100D74602 /* Preview Assets.xcassets in Resources */,
+				13B195162A8C1BA90002BA73 /* explosion.wav in Resources */,
+				13B195112A8C1BA90002BA73 /* thrustSide.wav in Resources */,
 				13F3F4092A5CA95B0012AE47 /* SpaceMono-Bold.ttf in Resources */,
+				13B195152A8C1BA90002BA73 /* break.wav in Resources */,
+				13B1950A2A8C11590002BA73 /* thrust.mp3 in Resources */,
+				13B195122A8C1BA90002BA73 /* thrust.wav in Resources */,
 				1317D4A42A7186B700122154 /* Stars.sks in Resources */,
 				13F3F4082A5CA95B0012AE47 /* SpaceMono-Regular.ttf in Resources */,
 				13B4FC012A4B1A2100D74602 /* Assets.xcassets in Resources */,
 				13F99EDB2A66FF8E0044FBC5 /* BurstParticle.sks in Resources */,
+				13B195142A8C1BA90002BA73 /* disappear.wav in Resources */,
 				138A59502A5768F6007248FC /* ThrustParticle.sks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -341,7 +377,7 @@
 			files = (
 				13B4FC272A4B1C2200D74602 /* GameScene.swift in Sources */,
 				13B4FBFF2A4B1A1F00D74602 /* ContentView.swift in Sources */,
-				13FBECF12A4C7D2C00074D44 /* CGAudio.swift in Sources */,
+				13FBECF12A4C7D2C00074D44 /* AVAudio.swift in Sources */,
 				13B4FBFD2A4B1A1F00D74602 /* Lunar_Pilot_App.swift in Sources */,
 				13B195072A8BB5260002BA73 /* Player.swift in Sources */,
 				13FBECED2A4B894C00074D44 /* CGMath.swift in Sources */,
