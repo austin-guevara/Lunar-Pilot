@@ -1,6 +1,6 @@
 //
-//  Lunar_Pilot_2_0UITests.swift
-//  Lunar Pilot 2.0UITests
+//  Lunar_Pilot_UITests.swift
+//  Lunar Pilot UITests
 //
 //  Created by Austin Guevara on 6/27/23.
 //

@@ -1,6 +1,6 @@
 //
-//  Lunar_Pilot_2_0App.swift
-//  Lunar Pilot 2.0
+//  Lunar_Pilot_App.swift
+//  Lunar Pilot
 //
 //  Created by Austin Guevara on 6/27/23.
 //

@@ -9,7 +9,8 @@
 /* Begin PBXBuildFile section */
 		1317D4A42A7186B700122154 /* Stars.sks in Resources */ = {isa = PBXBuildFile; fileRef = 1317D4A32A7186B700122154 /* Stars.sks */; };
 		138A59502A5768F6007248FC /* ThrustParticle.sks in Resources */ = {isa = PBXBuildFile; fileRef = 138A594F2A5768F6007248FC /* ThrustParticle.sks */; };
-		13B4FBFD2A4B1A1F00D74602 /* Lunar_Pilot_2_0App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_2_0App.swift */; };
+		13B195072A8BB5260002BA73 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B195062A8BB5260002BA73 /* Player.swift */; };
+		13B4FBFD2A4B1A1F00D74602 /* Lunar_Pilot_App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_App.swift */; };
 		13B4FBFF2A4B1A1F00D74602 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B4FBFE2A4B1A1F00D74602 /* ContentView.swift */; };
 		13B4FC012A4B1A2100D74602 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B4FC002A4B1A2100D74602 /* Assets.xcassets */; };
 		13B4FC042A4B1A2100D74602 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B4FC032A4B1A2100D74602 /* Preview Assets.xcassets */; };
@@ -44,8 +45,9 @@
 /* Begin PBXFileReference section */
 		1317D4A32A7186B700122154 /* Stars.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Stars.sks; sourceTree = "<group>"; };
 		138A594F2A5768F6007248FC /* ThrustParticle.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = ThrustParticle.sks; sourceTree = "<group>"; };
+		13B195062A8BB5260002BA73 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		13B4FBF92A4B1A1F00D74602 /* Lunar Pilot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lunar Pilot.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_2_0App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lunar_Pilot_2_0App.swift; sourceTree = "<group>"; };
+		13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lunar_Pilot_App.swift; sourceTree = "<group>"; };
 		13B4FBFE2A4B1A1F00D74602 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		13B4FC002A4B1A2100D74602 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		13B4FC032A4B1A2100D74602 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -98,6 +100,42 @@
 			path = "Sprite Assets";
 			sourceTree = "<group>";
 		};
+		13B195022A8BB4A40002BA73 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				13FBECF02A4C7D2C00074D44 /* CGAudio.swift */,
+				13FBECEC2A4B894C00074D44 /* CGMath.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		13B195032A8BB4CE0002BA73 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				13B4FC262A4B1C2200D74602 /* GameScene.swift */,
+				13B4FBFE2A4B1A1F00D74602 /* ContentView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		13B195042A8BB4E00002BA73 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				13B4FC002A4B1A2100D74602 /* Assets.xcassets */,
+				13F3F4052A5CA8510012AE47 /* Fonts */,
+				1317D4A52A718E8300122154 /* Sprite Assets */,
+			);
+			path = Assets;
+			sourceTree = "<group>";
+		};
+		13B195052A8BB5010002BA73 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				13B195062A8BB5260002BA73 /* Player.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		13B4FBF02A4B1A1F00D74602 = {
 			isa = PBXGroup;
 			children = (
@@ -121,14 +159,11 @@
 		13B4FBFB2A4B1A1F00D74602 /* Lunar Pilot */ = {
 			isa = PBXGroup;
 			children = (
-				13FBECF02A4C7D2C00074D44 /* CGAudio.swift */,
-				13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_2_0App.swift */,
-				13B4FC262A4B1C2200D74602 /* GameScene.swift */,
-				13FBECEC2A4B894C00074D44 /* CGMath.swift */,
-				13B4FBFE2A4B1A1F00D74602 /* ContentView.swift */,
-				13B4FC002A4B1A2100D74602 /* Assets.xcassets */,
-				13F3F4052A5CA8510012AE47 /* Fonts */,
-				1317D4A52A718E8300122154 /* Sprite Assets */,
+				13B195052A8BB5010002BA73 /* Model */,
+				13B4FBFC2A4B1A1F00D74602 /* Lunar_Pilot_App.swift */,
+				13B195032A8BB4CE0002BA73 /* Views */,
+				13B195022A8BB4A40002BA73 /* Utilities */,
+				13B195042A8BB4E00002BA73 /* Assets */,
 				13B4FC022A4B1A2100D74602 /* Preview Content */,
 				13F3F40A2A5CA9AE0012AE47 /* Lunar-Pilot-Info.plist */,
 			);
@@ -307,7 +342,8 @@
 				13B4FC272A4B1C2200D74602 /* GameScene.swift in Sources */,
 				13B4FBFF2A4B1A1F00D74602 /* ContentView.swift in Sources */,
 				13FBECF12A4C7D2C00074D44 /* CGAudio.swift in Sources */,
-				13B4FBFD2A4B1A1F00D74602 /* Lunar_Pilot_2_0App.swift in Sources */,
+				13B4FBFD2A4B1A1F00D74602 /* Lunar_Pilot_App.swift in Sources */,
+				13B195072A8BB5260002BA73 /* Player.swift in Sources */,
 				13FBECED2A4B894C00074D44 /* CGMath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -570,12 +606,12 @@
 				DEVELOPMENT_TEAM = WQTR3TXTMH;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.AustinGuevara.Lunar-Pilot-2-0UITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.AustinGuevara.Lunar-Pilot-UITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Lunar Pilot 2.0";
+				TEST_TARGET_NAME = "Lunar Pilot";
 			};
 			name = Debug;
 		};
@@ -588,12 +624,12 @@
 				DEVELOPMENT_TEAM = WQTR3TXTMH;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.AustinGuevara.Lunar-Pilot-2-0UITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.AustinGuevara.Lunar-Pilot-UITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Lunar Pilot 2.0";
+				TEST_TARGET_NAME = "Lunar Pilot";
 			};
 			name = Release;
 		};

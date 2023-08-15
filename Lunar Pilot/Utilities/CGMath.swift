@@ -1,6 +1,6 @@
 //
 //  CGMath.swift
-//  Lunar Pilot 2.0
+//  Lunar Pilot
 //
 //  Created by Austin Guevara on 6/27/23.
 //

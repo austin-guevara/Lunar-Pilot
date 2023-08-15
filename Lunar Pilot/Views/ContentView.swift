@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  Lunar Pilot 2.0
+//  Lunar Pilot
 //
 //  Created by Austin Guevara on 6/27/23.
 //
@@ -9,6 +9,9 @@ import SpriteKit
 import SwiftUI
 
 struct ContentView: View {
+    
+    // Need to wait for iOS 17
+    // @Bindable var player: Player
     
     @State private var shouldPauseGame = false
     @State private var shouldPresentInstructions = true
@@ -120,7 +123,7 @@ struct ContentView: View {
                         gameScene.isPaused = true
                     }
                 }
-                // .transition(.slide)
+                // .transition(.fade)
             }
             
             // MARK: - GameOver Message
