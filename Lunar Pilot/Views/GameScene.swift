@@ -108,12 +108,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         setLandResetTimer()
         
         // make sounds
-        appearSound = AVAudio().makeSound(fileNamed: "appear.wav")
-        breakSound = AVAudio().makeSound(fileNamed: "break.wav")
-        disappearSound = AVAudio().makeSound(fileNamed: "disappear.wav")
-        explosionSound = AVAudio().makeSound(fileNamed: "explosion.wav")
-        thrustSideSound = AVAudio().makeSound(fileNamed: "thrustSide.wav")
-        thrustSound = AVAudio().makeSound(fileNamed: "thrust.wav")
+        appearSound = AVAudio().makeSound(fileNamed: "appear.mp3")
+        breakSound = AVAudio().makeSound(fileNamed: "break.mp3")
+        disappearSound = AVAudio().makeSound(fileNamed: "disappear.mp3")
+        explosionSound = AVAudio().makeSound(fileNamed: "explosion.mp3")
+        thrustSideSound = AVAudio().makeSound(fileNamed: "thrust.mp3")
+        thrustSound = AVAudio().makeSound(fileNamed: "thrust.mp3")
         
         // create the craft and canyon
         createLevel()
