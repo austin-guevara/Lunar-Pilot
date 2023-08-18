@@ -16,8 +16,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     @Published var levelCount: Int = 1
     @Published var livesCount: Int = 5
     @Published var gameOver = false
-    var gameIsPaused = false {
-        willSet { self.objectWillChange.send() }
+    @Published var gameIsPaused = false {
+        didSet {
+            isPaused = gameIsPaused
+        }
     }
     
     private let gravityForce = -0.2
@@ -596,12 +598,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
             // Phase 2: When timer reaches below threshold, make explosion
             if crashResetTimer <= (crashResetDuration - (self.scene?.view!.preferredFramesPerSecond)! * 3) && !crashBurstFired {
                 
+                explosionSound!.play()
+                
                 crashNode = SKEmitterNode(fileNamed: "BurstParticle.sks")
                 crashNode.position = craft.position
                 crashNode.targetNode = self.scene
                 self.addChild(crashNode)
-                
-                explosionSound!.play()
                 
                 removeCraft(animated: false)
                 crashBurstFired = true
