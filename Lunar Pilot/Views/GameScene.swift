@@ -16,6 +16,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     @Published var levelCount: Int = 1
     @Published var livesCount: Int = 5
     @Published var gameOver = false
+    var gameIsPaused = false {
+        willSet { self.objectWillChange.send() }
+    }
     
     private let gravityForce = -0.2
     private let thrustForce = 2.0
@@ -65,12 +68,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     
     private var levelLabel: SKLabelNode!
     
+    // Come back to these and make better sounds in future
     private var appearSound: AVAudioPlayer?
-    private var breakSound: AVAudioPlayer?
+    // private var breakSound: AVAudioPlayer?
+    // private var contactSound: AVAudioPlayer?
     private var disappearSound: AVAudioPlayer?
     private var explosionSound: AVAudioPlayer?
-    private var thrustSideSound: AVAudioPlayer?
-    private var thrustSound: AVAudioPlayer?
+    // private var springSound: AVAudioPlayer?
+    // private var thrustSound: AVAudioPlayer?
     
     private var crashResetDuration: Int = 0
     private var crashResetTimer: Int = 0
@@ -107,17 +112,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         setCrashResetTimer()
         setLandResetTimer()
         
-        // make sounds
+        // Set up AVAudioPlayers for sound effects
         appearSound = AVAudio().makeSound(fileNamed: "appear.mp3")
-        breakSound = AVAudio().makeSound(fileNamed: "break.mp3")
         disappearSound = AVAudio().makeSound(fileNamed: "disappear.mp3")
-        explosionSound = AVAudio().makeSound(fileNamed: "explosion.mp3")
-        thrustSideSound = AVAudio().makeSound(fileNamed: "thrust.mp3")
-        thrustSound = AVAudio().makeSound(fileNamed: "thrust.mp3")
+        explosionSound = AVAudio().makeSound(fileNamed: "explosion.wav")
         
         // create the craft and canyon
         createLevel()
-        createCraft()
+        
+        // Instead of createCraft, we just create a placeholder sprite from the init()
+        // createCraft()
+        
+        craft = SKSpriteNode(color: UIColor.red, size: CGSize(width: 40, height: 30))
+        landingGearLeft = SKSpriteNode(color: UIColor.white, size: CGSize(width: 10, height: 17))
+        landingGearRight = SKSpriteNode(color: UIColor.white, size: CGSize(width: 10, height: 17))
+        
+        thrustNode = SKEmitterNode(fileNamed: "ThrustParticle.sks")
+        rotateLeftNode = SKEmitterNode(fileNamed: "ThrustParticle.sks")
+        rotateRightNode = SKEmitterNode(fileNamed: "ThrustParticle.sks")
+        
+        craft.alpha = 0; landingGearLeft.alpha = 0; landingGearRight.alpha = 0
+        craft.position = CGPoint(x: screenWidth/2, y: screenHeight-75)
+        addChild(craft)
     }
     
     func resetGame() {
@@ -132,6 +148,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
     func createCraft() {
         
         fuelLevel = 100
+        
         let entraceAnimation = SKAction.sequence([SKAction.fadeIn(withDuration: 0.3),
                                                   SKAction.scale(to: 1, duration: 0.3)])
         entraceAnimation.timingMode = .easeInEaseOut
@@ -240,7 +257,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         }
         
         craft.removeFromParent()
-        disappearSound!.play()
         
         touchesArray = []
         currentTouch = isTouching.none
@@ -552,25 +568,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
         createCraft()
     }
     
+    func stopAllSounds() {
+        appearSound!.stop()
+        disappearSound!.stop()
+        explosionSound!.stop()
+    }
+    
     override func update(_ currentTime: TimeInterval) {
         
         if livesCount <= 0 {
             gameOver = true
         }
         
+        // if abs(landingGearLeft.position.y) < 5 && !canyonCollide { springSound!.play() }
+        
         if canyonCollide {
             
-            // Break the craft apart into pieces
+            // Phase 1: Break the craft apart into pieces
             self.physicsWorld.remove(fixedJoint)
             self.physicsWorld.remove(sliderJoint)
             self.physicsWorld.remove(springJoint)
             
-            // Play sound effect
-            breakSound!.play()
+            // if crashResetTimer == crashResetDuration { breakSound!.play() }
             
             crashResetTimer -= 1
             
-            if crashResetTimer <= (crashResetDuration - (self.scene?.view!.preferredFramesPerSecond)! * 3) && crashBurstFired == false {
+            // Phase 2: When timer reaches below threshold, make explosion
+            if crashResetTimer <= (crashResetDuration - (self.scene?.view!.preferredFramesPerSecond)! * 3) && !crashBurstFired {
+                
                 crashNode = SKEmitterNode(fileNamed: "BurstParticle.sks")
                 crashNode.position = craft.position
                 crashNode.targetNode = self.scene
@@ -581,6 +606,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
                 removeCraft(animated: false)
                 crashBurstFired = true
             } else if crashResetTimer <= 0 {
+                
+                //Phase 3: Wait until explosion finishes, then reset the level
                 crashCount += 1
                 livesCount -= 1
                 
@@ -603,6 +630,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
                 craft.run(craftExitAnimation)
                 transitionRect.run(levelExitAnimation)
                 
+                disappearSound!.play()
                 didDisappear = true
             }
         }
@@ -633,7 +661,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
             thrustNode.particleBirthRate = 200
             
             // play sound effect
-            thrustSound!.play()
+            // thrustSound!.play()
             
             
         case .left:
@@ -648,7 +676,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
             rotateLeftNode.particleBirthRate = 100
             
             // play sound effect
-            thrustSideSound!.play()
+            // thrustSound!.play()
             
         case .right:
             
@@ -662,7 +690,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
             rotateRightNode.particleBirthRate = 100
             
             // play sound effect
-            thrustSideSound!.play()
+            // thrustSound!.play()
             
         case .none:
             
@@ -672,8 +700,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate, ObservableObject {
             rotateRightNode.particleBirthRate = 0
             
             // stop sound effects
-            thrustSound!.stop()
-            thrustSideSound!.stop()
+            // thrustSound!.stop()
         }
     }
     

@@ -96,6 +96,8 @@ struct ContentView: View {
                         shouldPauseGame = false
                         
                         if firstLoad {
+                            gameScene.createCraft()
+                            
                             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                                 shouldPresentInstructions = true
                             }

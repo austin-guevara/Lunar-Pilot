@@ -10,6 +10,14 @@ import AVFoundation
 class AVAudio {
     
     func makeSound(fileNamed fileName: String) -> AVAudioPlayer? {
+        
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: [])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Error setting up AVAudioSession: \(error)")
+        }
+        
         let path = Bundle.main.path(forResource: fileName, ofType:nil)!
         let url = URL(fileURLWithPath: path)
 
