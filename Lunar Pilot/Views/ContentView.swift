@@ -10,12 +10,13 @@ import SwiftUI
 
 struct ContentView: View {
     
+    @Environment(\.scenePhase) private var scenePhase
+    
     // Need to wait for iOS 17
     // @Bindable var player: Player
     @State private var highScore: Int = 0
     
-    @State private var shouldPauseGame = true
-    @State private var shouldPresentInstructions = false
+    @State private var showInstructions = false
     @State private var firstLoad = true
     @StateObject private var gameScene = GameScene()
     
@@ -65,13 +66,12 @@ struct ContentView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
-                    .disabled(shouldPauseGame)
+                    .disabled(gameScene.gameIsPaused)
                     Spacer()
                     Button {
-                        shouldPauseGame.toggle()
-                        gameScene.isPaused = shouldPauseGame
+                        gameScene.gameIsPaused.toggle()
                     } label: {
-                        Image(systemName: shouldPauseGame ? "play" : "pause")
+                        Image(systemName: gameScene.gameIsPaused ? "play" : "pause")
                             .foregroundColor(.white)
                     }
                     // .sheet(isPresented: $shouldShowSettings) {
@@ -86,20 +86,19 @@ struct ContentView: View {
             .edgesIgnoringSafeArea(.all)
             
             // MARK: - Game Menu
-            if shouldPauseGame {
+            if (gameScene.gameIsPaused || firstLoad) && !showInstructions {
                 VStack(spacing: 12) {
                     Text(firstLoad ? "Lunar Pilot" : "Game Paused")
                         .font(Font.custom("SpaceMono-Bold", size: 24))
                     Text(highScore > 0 ? "High Score: \(highScore)" : "Play to set a high score!")
                     Button(firstLoad ? "Play Game" : "Resume Game") {
-                        gameScene.isPaused = false
-                        shouldPauseGame = false
+                        gameScene.gameIsPaused = false
                         
                         if firstLoad {
                             gameScene.createCraft()
                             
                             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                                shouldPresentInstructions = true
+                                showInstructions = false
                             }
                         }
                         
@@ -119,14 +118,14 @@ struct ContentView: View {
                 .onAppear() {
                     if firstLoad {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            gameScene.isPaused = true
+                            gameScene.gameIsPaused = true
                         }
                     }
                 }
             }
             
             // MARK: - Pilot Instructions
-            if shouldPresentInstructions && !shouldPauseGame {
+            if showInstructions {
                 VStack {
                     Spacer()
                     VStack(spacing: 8) {
@@ -146,7 +145,7 @@ struct ContentView: View {
                 }
                 .padding()
                 .onAppear() {
-                    gameScene.isPaused = true
+                    gameScene.gameIsPaused = true
                 }
                 .onTapGesture() {
                     if typeWriterRunning {
@@ -159,8 +158,8 @@ struct ContentView: View {
                             typeWriterRunning = true
                             typeWriter(withText: messages[currentMessageIndex])
                         } else {
-                            shouldPresentInstructions = false
-                            gameScene.isPaused = false
+                            showInstructions = false
+                            gameScene.gameIsPaused = false
                         }
                     }
                 }
@@ -195,7 +194,7 @@ struct ContentView: View {
                 }
                 .padding()
                 .onAppear() {
-                    gameScene.isPaused = true
+                    gameScene.gameIsPaused = true
                     
                     if gameScene.levelCount > highScore {
                         highScore = gameScene.levelCount
@@ -206,6 +205,15 @@ struct ContentView: View {
         .statusBar(hidden: true)
         .persistentSystemOverlays(.hidden)
         .font(Font.custom("SpaceMono-Bold", size: 16))
+        .onChange(of: scenePhase) { newPhase in
+            // if newPhase == .active {
+                // gameScene.isPaused = gameScene.gameIsPaused
+            if newPhase == .inactive {
+                gameScene.gameIsPaused = true
+            } else if newPhase == .background {
+                gameScene.gameIsPaused = true
+            }
+        }
     }
     
     private func typeWriter(withText finalText: String, at position: Int = 0) {
@@ -226,13 +234,14 @@ struct ContentView: View {
     }
     
     struct SettingsView: View {
-        @Binding var shouldPauseGame: Bool
+        // @Binding var shouldPauseGame: Bool
         @ObservedObject var gameScene: GameScene
 
         var body: some View {
             Button("Press to dismiss") {
-                shouldPauseGame = false
-                gameScene.isPaused = shouldPauseGame
+                // shouldPauseGame = false
+                // gameScene.gameIsPaused = shouldPauseGame
+                gameScene.gameIsPaused = false
             }
             .padding()
         }
