@@ -86,7 +86,7 @@ struct ContentView: View {
             .edgesIgnoringSafeArea(.all)
             
             // MARK: - Game Menu
-            if (gameScene.gameIsPaused || firstLoad) && !showInstructions {
+            if (gameScene.gameIsPaused || firstLoad) && !showInstructions && !gameScene.gameOver {
                 VStack(spacing: 12) {
                     Text(firstLoad ? "Lunar Pilot" : "Game Paused")
                         .font(Font.custom("SpaceMono-Bold", size: 24))
@@ -173,12 +173,18 @@ struct ContentView: View {
                     VStack(spacing: 12) {
                         Text("GAME OVER")
                         VStack {
-                            Text("You made it to level \(gameScene.levelCount).")
-                            Text(gameScene.levelCount > highScore ? "That’s a new high score!" : "Great attempt, pilot.")
+                            if (gameScene.levelCount - 1) > 0 {
+                                Text("You made it to level \(gameScene.levelCount - 1).")
+                            }
+                            Text((gameScene.levelCount - 1) > highScore ? "New high score!" : "Great attempt, pilot.")
                         }
                         .font(Font.custom("SpaceMono-Bold", size: 16))
                         Button("New Game") {
                             gameScene.resetGame()
+                            
+                            if (gameScene.levelCount - 1) > highScore {
+                                highScore = (gameScene.levelCount - 1)
+                            }
                         }
                         .font(Font.custom("SpaceMono-Bold", size: 16))
                         .padding([.top, .bottom], 4)
@@ -195,10 +201,6 @@ struct ContentView: View {
                 .padding()
                 .onAppear() {
                     gameScene.gameIsPaused = true
-                    
-                    if gameScene.levelCount > highScore {
-                        highScore = gameScene.levelCount
-                    }
                 }
             }
         }
